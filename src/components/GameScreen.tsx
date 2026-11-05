@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Chess, type Color, type Square } from 'chess.js';
 import { Chessboard, defaultPieces } from 'react-chessboard';
 import type { ChessEngine } from '../engine/types';
@@ -19,13 +19,25 @@ interface Props {
   timeControl: TimeControl;
   playerColor: Color;
   engine: ChessEngine;
+  opponentName?: string;
+  opponentTag?: string;
+  /** Wird genau einmal aufgerufen, wenn die Partie endet */
+  onFinish?: (result: GameResult) => void;
+  /** Zusätzlicher Inhalt im Ergebnisfenster, z. B. Gewinn oder Verlust */
+  resultExtra?: ReactNode;
+  /** Beschriftung der Revanche; null blendet sie aus */
+  rematchLabel?: string | null;
+  newGameLabel?: string;
   onRematch: () => void;
   onNewGame: () => void;
 }
 
 const isLightSquare = (sq: string) => (sq.charCodeAt(0) - 97 + Number(sq[1]) - 1) % 2 === 1;
 
-export function GameScreen({ timeControl, playerColor, engine, onRematch, onNewGame }: Props) {
+export function GameScreen({
+  timeControl, playerColor, engine, opponentName = t.opponent, opponentTag, onFinish, resultExtra,
+  rematchLabel = t.actions.rematch, newGameLabel = t.actions.newGame, onRematch, onNewGame,
+}: Props) {
   const gameRef = useRef(new Chess());
   const game = gameRef.current;
   const hasClock = timeControl.initialMs !== null;
@@ -81,6 +93,15 @@ export function GameScreen({ timeControl, playerColor, engine, onRematch, onNewG
     if (res) finish(res);
     return true;
   }, [hasClock, timeControl.incrementMs, finish]);
+
+  // Ende der Partie genau einmal melden
+  const reportedRef = useRef(false);
+  useEffect(() => {
+    if (result && !reportedRef.current) {
+      reportedRef.current = true;
+      onFinish?.(result);
+    }
+  }, [result, onFinish]);
 
   // Uhr-Ticker und Prüfung auf Zeitüberschreitung
   useEffect(() => {
@@ -194,8 +215,8 @@ export function GameScreen({ timeControl, playerColor, engine, onRematch, onNewG
   return (
     <div className="game">
       <PlayerBar
-        name={t.opponent}
-        tag={engine.name}
+        name={opponentName}
+        tag={opponentTag ?? engine.name}
         color={opponentColor}
         active={!result && turn === opponentColor}
         clock={hasClock ? clockMs(opponentColor) : null}
@@ -259,9 +280,10 @@ export function GameScreen({ timeControl, playerColor, engine, onRematch, onNewG
                 {result.winner === null ? t.result.draw : result.winner === playerColor ? t.result.win : t.result.loss}
               </p>
               <p className="result-reason">{t.reason[result.reason]}</p>
+              {resultExtra}
               <div className="btn-row">
-                <button className="btn primary" onClick={onRematch}>{t.actions.rematch}</button>
-                <button className="btn" onClick={onNewGame}>{t.actions.newGame}</button>
+                {rematchLabel && <button className="btn primary" onClick={onRematch}>{rematchLabel}</button>}
+                <button className={`btn${rematchLabel ? '' : ' primary'}`} onClick={onNewGame}>{newGameLabel}</button>
               </div>
             </div>
           </div>
