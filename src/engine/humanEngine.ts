@@ -16,8 +16,8 @@ export class HumanEngine implements ChessEngine {
   /** Letzter gewählter Zug mit Art (bester Zug, natürlicher Zug, Fehler), z. B. für Reaktionen des Gegners */
   lastResult: ThinkResult | null = null;
 
-  constructor(elo: number, name = `Stufe ${elo}`) {
-    this.profile = profileForElo(elo);
+  constructor(elo: number, name = `Stufe ${elo}`, style: Partial<Omit<StrengthProfile, 'elo' | 'depth'>> = {}) {
+    this.profile = { ...profileForElo(elo), ...style };
     this.name = name;
   }
 

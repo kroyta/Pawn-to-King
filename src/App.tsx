@@ -1,18 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Color } from 'chess.js';
-import { GameScreen } from './components/GameScreen';
+import { GameScreen, type Persona } from './components/GameScreen';
 import { HomeScreen } from './components/HomeScreen';
 import { TestSetup, type TestSettings } from './components/TestSetup';
 import { HumanEngine } from './engine/humanEngine';
-import { formatMoney } from './game/format';
-import { OPPONENTS, type Opponent } from './game/opponents';
-import type { GameResult } from './game/result';
-import { loadSave, storeSave } from './game/storage';
-import type { TimeControl } from './game/timeControls';
 import {
   canAfford, newSave, outcomeFor, resolveAbandoned, settleMatch, startMatch,
   type SaveData, type Settlement,
-} from './game/wallet';
+} from './game/career';
+import { formatMoney } from './game/format';
+import { dayElo, type Opponent } from './game/opponents';
+import { formatOf, overallRating } from './game/rating';
+import type { GameResult } from './game/result';
+import { loadSave, storeSave } from './game/storage';
+import type { TimeControl } from './game/timeControls';
 import { t } from './i18n/de';
 
 interface Match {
@@ -20,8 +21,9 @@ interface Match {
   timeControl: TimeControl;
   playerColor: Color;
   engine: HumanEngine;
-  /** null = freie Testpartie ohne Geld */
+  /** null = freie Testpartie ohne Geld und ohne Elo */
   opponent: Opponent | null;
+  persona?: Persona;
   free: boolean;
 }
 
@@ -55,17 +57,22 @@ export default function App() {
   const engine = match?.engine;
   useEffect(() => () => engine?.dispose(), [engine]);
 
-  const playOpponent = (opponent: Opponent, free: boolean, reuse?: HumanEngine) => {
+  const playOpponent = (opponent: Opponent, free: boolean) => {
+    const elo = dayElo(opponent);
+    const text = t.opponents[opponent.id];
     // Einsatz wird beim Start einbehalten
-    setSave(startMatch(save, opponent.id, opponent.stake, free));
+    setSave(startMatch(save, {
+      opponentId: opponent.id, stake: opponent.stake, free, opponentElo: elo, format: formatOf(opponent.timeControl),
+    }));
     setNotice(null);
     setSettlement(null);
     setMatch({
       id: Date.now(),
       timeControl: opponent.timeControl,
       playerColor: randomColor(),
-      engine: reuse ?? new HumanEngine(opponent.elo, t.opponents[opponent.id].name),
+      engine: new HumanEngine(elo, text.name, opponent.style),
       opponent,
+      persona: { color: opponent.avatar.color, lines: text.lines },
       free,
     });
   };
@@ -78,17 +85,24 @@ export default function App() {
   const onFinish = useCallback((result: GameResult) => {
     if (!match?.opponent) return;
     const res = settleMatch(save, outcomeFor(result, match.playerColor));
+    if (!res) return;
     setSave(res.save);
     setSettlement(res);
   }, [match, save]);
 
-  const resultExtra = settlement && match?.opponent ? <MoneyResult settlement={settlement} free={match.free} /> : null;
+  const o = match?.opponent ?? null;
+  const resultExtra = settlement && o
+    ? <MatchSummary settlement={settlement} free={match!.free} opponentName={t.opponents[o.id].name} />
+    : null;
 
   let rematchLabel: string | null = t.actions.rematch;
-  if (match?.opponent) {
-    const o = match.opponent;
-    rematchLabel = match.free || !canAfford(save, o.stake) ? null : t.money.rematchFor(formatMoney(o.stake));
-  }
+  if (o) rematchLabel = match!.free || !canAfford(save, o.stake) ? null : t.money.rematchFor(formatMoney(o.stake));
+
+  const playerElo = () => {
+    if (!match) return undefined;
+    const r = save.ratings[formatOf(match.timeControl)];
+    return `Elo ${r?.value ?? overallRating(save.ratings).value}`;
+  };
 
   return (
     <main className="app">
@@ -106,16 +120,16 @@ export default function App() {
           timeControl={match.timeControl}
           playerColor={match.playerColor}
           engine={match.engine}
-          opponentName={match.opponent ? t.opponents[match.opponent.id].name : undefined}
-          opponentTag={match.opponent
-            ? (match.free ? t.money.freeGameTag : `${t.money.stake} ${formatMoney(match.opponent.stake)}`)
-            : undefined}
+          persona={match.persona}
+          opponentName={o ? t.opponents[o.id].name : undefined}
+          opponentTag={o ? (match.free ? t.money.freeGameTag : formatMoney(o.stake)) : undefined}
+          playerTag={o ? playerElo() : undefined}
           onFinish={onFinish}
           resultExtra={resultExtra}
           rematchLabel={rematchLabel}
-          newGameLabel={match.opponent ? t.money.back : t.actions.newGame}
+          newGameLabel={o ? t.money.back : t.actions.newGame}
           onRematch={() => {
-            if (match.opponent) playOpponent(match.opponent, false, match.engine);
+            if (o) playOpponent(o, false);
             else setMatch({ ...match, id: Date.now() });
           }}
           onNewGame={() => setMatch(null)}
@@ -129,9 +143,8 @@ export default function App() {
       ) : (
         <HomeScreen
           save={save}
-          opponent={OPPONENTS[0]}
           notice={notice}
-          onPlay={(free) => playOpponent(OPPONENTS[0], free)}
+          onPlay={playOpponent}
           onTest={() => setScreen('test')}
         />
       )}
@@ -139,24 +152,30 @@ export default function App() {
   );
 }
 
-function MoneyResult({ settlement, free }: { settlement: Settlement; free: boolean }) {
-  const { delta, outcome, save } = settlement;
-  let text: string;
+function MatchSummary({ settlement, free, opponentName }: { settlement: Settlement; free: boolean; opponentName: string }) {
+  const { moneyDelta, outcome, save, rating, opponentElo } = settlement;
+  let money: string;
   let cls: string;
-  if (delta > 0) {
-    text = t.money.won(formatMoney(delta));
+  if (moneyDelta > 0) {
+    money = t.money.won(formatMoney(moneyDelta));
     cls = 'plus';
-  } else if (delta < 0) {
-    text = t.money.lost(formatMoney(-delta));
+  } else if (moneyDelta < 0) {
+    money = t.money.lost(formatMoney(-moneyDelta));
     cls = 'minus';
   } else {
-    text = free || outcome !== 'draw' ? t.money.nothing : t.money.stakeBack;
+    money = free || outcome !== 'draw' ? t.money.nothing : t.money.stakeBack;
     cls = 'even';
   }
   return (
     <div className="money-result">
-      <p className={`money-delta ${cls}`}>{text}</p>
+      <p className={`money-delta ${cls}`}>{money}</p>
       <p className="money-balance">{t.money.newBalance(formatMoney(save.balance))}</p>
+      <div className="reveal">
+        <p className="reveal-elo">{t.rating.reveal(opponentName, opponentElo)}</p>
+        <p className="reveal-rating">
+          {t.rating.change(t.rating.formats[rating.format], rating.before, rating.after, rating.delta)}
+        </p>
+      </div>
     </div>
   );
 }

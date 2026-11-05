@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { Chess, type Color, type Square } from 'chess.js';
 import { Chessboard, defaultPieces } from 'react-chessboard';
 import type { ChessEngine } from '../engine/types';
+import { Avatar, type Mood } from './Avatar';
 import { boardResult, timeoutResult, type GameResult } from '../game/result';
 import { formatClock, type TimeControl } from '../game/timeControls';
 import { t } from '../i18n/de';
@@ -15,12 +16,52 @@ const COLORS = {
 
 type PromotionPiece = 'q' | 'r' | 'b' | 'n';
 
+/** Sprüche des Gegners zu bestimmten Ereignissen */
+export interface ReactionLines {
+  start: string[];
+  botCaptures: string[];
+  playerCaptures: string[];
+  botChecks: string[];
+  playerChecks: string[];
+  botWins: string[];
+  botLoses: string[];
+  draw: string[];
+}
+
+export interface Persona {
+  color: string;
+  lines: ReactionLines;
+}
+
+type ReactionEvent = keyof ReactionLines;
+
+const MOOD_FOR: Record<ReactionEvent, Mood> = {
+  start: 'neutral',
+  botCaptures: 'happy',
+  playerCaptures: 'worried',
+  botChecks: 'happy',
+  playerChecks: 'worried',
+  botWins: 'happy',
+  botLoses: 'worried',
+  draw: 'neutral',
+};
+
+/** Wie oft der Gegner etwas sagt (Ende und Start immer) */
+const CHATTINESS: Record<ReactionEvent, number> = {
+  start: 1, botCaptures: 0.6, playerCaptures: 0.7, botChecks: 0.5, playerChecks: 0.4, botWins: 1, botLoses: 1, draw: 1,
+};
+
+const pick = <T,>(xs: T[]) => xs[Math.floor(Math.random() * xs.length)];
+
 interface Props {
   timeControl: TimeControl;
   playerColor: Color;
   engine: ChessEngine;
   opponentName?: string;
   opponentTag?: string;
+  playerTag?: string;
+  /** Aussehen und Sprüche des Gegners; ohne Persona gibt es keine Sprechblase */
+  persona?: Persona;
   /** Wird genau einmal aufgerufen, wenn die Partie endet */
   onFinish?: (result: GameResult) => void;
   /** Zusätzlicher Inhalt im Ergebnisfenster, z. B. Gewinn oder Verlust */
@@ -35,7 +76,7 @@ interface Props {
 const isLightSquare = (sq: string) => (sq.charCodeAt(0) - 97 + Number(sq[1]) - 1) % 2 === 1;
 
 export function GameScreen({
-  timeControl, playerColor, engine, opponentName = t.opponent, opponentTag, onFinish, resultExtra,
+  timeControl, playerColor, engine, opponentName = t.opponent, opponentTag, playerTag, persona, onFinish, resultExtra,
   rematchLabel = t.actions.rematch, newGameLabel = t.actions.newGame, onRematch, onNewGame,
 }: Props) {
   const gameRef = useRef(new Chess());
@@ -58,31 +99,58 @@ export function GameScreen({
 
   const turn = game.turn();
   const isPlayerTurn = !result && turn === playerColor;
+  const opponentColor: Color = playerColor === 'w' ? 'b' : 'w';
+
+  /** Verbrauchte Zeit im laufenden Zug. Die Uhr des Gegners läuft um botClockFactor schneller ab. */
+  const elapsed = useCallback(
+    (c: Color, at: number) => (at - turnStartRef.current) * (c === opponentColor ? timeControl.botClockFactor : 1),
+    [opponentColor, timeControl.botClockFactor],
+  );
+
+  // Sprechblase und Gesichtsausdruck
+  const [bubble, setBubble] = useState<{ text: string; id: number } | null>(null);
+  const [mood, setMood] = useState<Mood>('neutral');
+  const say = useCallback((event: ReactionEvent) => {
+    if (!persona) return;
+    setMood(MOOD_FOR[event]);
+    if (Math.random() > CHATTINESS[event]) return;
+    setBubble({ text: pick(persona.lines[event]), id: Date.now() });
+  }, [persona]);
+
+  useEffect(() => {
+    if (!bubble || result) return;
+    const id = setTimeout(() => setBubble(null), 5000);
+    return () => clearTimeout(id);
+  }, [bubble, result]);
+
+  // Begrüßung
+  useEffect(() => { say('start'); }, [say]);
 
   const finish = useCallback((res: GameResult) => {
     if (hasClock) {
       const c = gameRef.current.turn();
-      remainingRef.current[c] = Math.max(0, remainingRef.current[c] - (performance.now() - turnStartRef.current));
+      remainingRef.current[c] = Math.max(0, remainingRef.current[c] - elapsed(c, performance.now()));
     }
     setSelected(null);
     setPromotion(null);
     setConfirmResign(false);
     setResult(res);
-  }, [hasClock]);
+  }, [hasClock, elapsed]);
 
   const makeMove = useCallback((from: string, to: string, promo?: string): boolean => {
     const g = gameRef.current;
     const mover = g.turn();
     const before = g.fen();
+    let move;
     try {
-      g.move({ from, to, promotion: promo });
+      move = g.move({ from, to, promotion: promo });
     } catch {
       return false;
     }
     historyRef.current = [...historyRef.current, before];
     if (hasClock) {
       const t0 = performance.now();
-      const left = remainingRef.current[mover] - (t0 - turnStartRef.current);
+      const left = remainingRef.current[mover] - elapsed(mover, t0);
       remainingRef.current[mover] = Math.max(0, left) + timeControl.incrementMs;
       turnStartRef.current = t0;
     }
@@ -90,9 +158,16 @@ export function GameScreen({
     setLastMove({ from, to });
     setSelected(null);
     const res = boardResult(g);
-    if (res) finish(res);
+    if (res) {
+      finish(res);
+    } else {
+      const byBot = mover === opponentColor;
+      const bigCapture = move.captured && move.captured !== 'p';
+      if (g.inCheck()) say(byBot ? 'botChecks' : 'playerChecks');
+      else if (bigCapture) say(byBot ? 'botCaptures' : 'playerCaptures');
+    }
     return true;
-  }, [hasClock, timeControl.incrementMs, finish]);
+  }, [hasClock, timeControl.incrementMs, finish, elapsed, opponentColor, say]);
 
   // Ende der Partie genau einmal melden
   const reportedRef = useRef(false);
@@ -100,8 +175,9 @@ export function GameScreen({
     if (result && !reportedRef.current) {
       reportedRef.current = true;
       onFinish?.(result);
+      say(result.winner === null ? 'draw' : result.winner === playerColor ? 'botLoses' : 'botWins');
     }
-  }, [result, onFinish]);
+  }, [result, onFinish, say, playerColor]);
 
   // Uhr-Ticker und Prüfung auf Zeitüberschreitung
   useEffect(() => {
@@ -110,24 +186,28 @@ export function GameScreen({
       const n = performance.now();
       setNow(n);
       const c = gameRef.current.turn();
-      if (remainingRef.current[c] - (n - turnStartRef.current) <= 0) {
+      if (remainingRef.current[c] - elapsed(c, n) <= 0) {
         finish(timeoutResult(gameRef.current, c));
       }
     }, 100);
     return () => clearInterval(id);
-  }, [hasClock, result, finish]);
+  }, [hasClock, result, finish, elapsed]);
 
   // Computerzug
   useEffect(() => {
     if (result || gameRef.current.turn() === playerColor) return;
     const ac = new AbortController();
-    const fast = (timeControl.initialMs ?? Infinity) <= 3 * 60_000;
-    // Mindest-Bedenkzeit, damit der Gegner nicht unnatürlich schnell zieht. Gerechnet wird parallel.
-    const minDelay = fast ? 250 + Math.random() * 700 : 600 + Math.random() * 1400;
     const botColor = gameRef.current.turn();
+    // Restzeit in echter Zeit (die Gegneruhr läuft schneller ab)
     const timeLeftMs = hasClock
-      ? remainingRef.current[botColor] - (performance.now() - turnStartRef.current)
+      ? (remainingRef.current[botColor] - elapsed(botColor, performance.now())) / timeControl.botClockFactor
       : undefined;
+    // Bedenkzeit wie ein Mensch: in der Eröffnung schnell, in Zeitnot kürzer. Gerechnet wird parallel.
+    const [lo, hi] = timeControl.botThinkMs;
+    let minDelay = lo + Math.random() * (hi - lo);
+    if (historyRef.current.length < 8) minDelay *= 0.4;
+    if (timeLeftMs !== undefined) minDelay = Math.min(minDelay, timeLeftMs / 30);
+    minDelay = Math.max(150, minDelay);
     const wait = new Promise((resolve) => setTimeout(resolve, minDelay));
     Promise.all([
       engine.chooseMove(gameRef.current.fen(), { signal: ac.signal, history: historyRef.current, timeLeftMs }),
@@ -139,7 +219,7 @@ export function GameScreen({
       })
       .catch(() => { /* abgebrochen */ });
     return () => ac.abort();
-  }, [fen, result, playerColor, engine, makeMove, timeControl.initialMs, hasClock]);
+  }, [fen, result, playerColor, engine, makeMove, timeControl, hasClock, elapsed]);
 
   const legalTargets = useMemo(
     () => (selected ? game.moves({ square: selected, verbose: true }).map((m) => m.to) : []),
@@ -204,10 +284,8 @@ export function GameScreen({
 
   const clockMs = (c: Color) => {
     const base = remainingRef.current[c];
-    return !result && c === turn ? base - (now - turnStartRef.current) : base;
+    return !result && c === turn ? base - elapsed(c, now) : base;
   };
-
-  const opponentColor: Color = playerColor === 'w' ? 'b' : 'w';
 
   let status: string = isPlayerTurn ? t.status.yourTurn : t.status.thinking;
   if (!result && game.inCheck()) status = `${t.status.check} ${status}`;
@@ -220,6 +298,8 @@ export function GameScreen({
         color={opponentColor}
         active={!result && turn === opponentColor}
         clock={hasClock ? clockMs(opponentColor) : null}
+        avatar={persona && <Avatar color={persona.color} mood={!result && turn === opponentColor && mood === 'neutral' ? 'thinking' : mood} size={40} />}
+        bubble={bubble}
       />
 
       <div className="board-wrap">
@@ -292,6 +372,7 @@ export function GameScreen({
 
       <PlayerBar
         name={t.you}
+        tag={playerTag}
         color={playerColor}
         active={isPlayerTurn}
         clock={hasClock ? clockMs(playerColor) : null}
@@ -317,20 +398,30 @@ export function GameScreen({
   );
 }
 
-function PlayerBar({ name, tag, color, active, clock }: {
+function PlayerBar({ name, tag, color, active, clock, avatar, bubble }: {
   name: string;
   tag?: string;
   color: Color;
   active: boolean;
   clock: number | null;
+  avatar?: ReactNode;
+  bubble?: { text: string; id: number } | null;
 }) {
   const low = clock !== null && clock < 20_000;
   return (
-    <div className="player-bar">
+    <div className={`player-bar${avatar ? ' with-avatar' : ''}`}>
       <div className="player-info">
-        <span className={`dot ${color === 'w' ? 'dot-white' : 'dot-black'}`} />
-        <span className="player-name">{name}</span>
-        {tag && <span className="player-tag">{tag}</span>}
+        {avatar}
+        <div className="player-text">
+          <div className="player-line">
+            <span className={`dot ${color === 'w' ? 'dot-white' : 'dot-black'}`} />
+            <span className="player-name">{name}</span>
+            {tag && <span className="player-tag">{tag}</span>}
+          </div>
+          {avatar && (
+            <p key={bubble?.id ?? 'none'} className={`speech${bubble ? ' show' : ''}`}><span>{bubble?.text ?? '\u00a0'}</span></p>
+          )}
+        </div>
       </div>
       {clock !== null ? (
         <span className={`clock${active ? ' active' : ''}${low ? ' low' : ''}`}>{formatClock(clock)}</span>

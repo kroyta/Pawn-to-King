@@ -169,21 +169,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 }
 .opponent-card .btn.big { margin-top: 16px; }
 .opponent-head { display: flex; gap: 14px; align-items: center; }
-.avatar {
-  width: 56px; height: 56px; border-radius: 50%; flex: none;
-  display: grid; place-items: center;
-  background: var(--petrol); color: #fff; font-weight: 800; font-size: 18px;
-}
 .opponent-name { margin: 0; font-weight: 800; font-size: 19px; }
 .opponent-place { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
-.bubble {
-  position: relative; margin: 16px 0 0; padding: 12px 14px;
-  background: #F3F0E4; border-radius: 14px; font-size: 15px; line-height: 1.4;
-}
-.bubble::before {
-  content: ''; position: absolute; top: -8px; left: 22px;
-  border: 8px solid transparent; border-top: 0; border-bottom-color: #F3F0E4;
-}
 .stake-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 16px; }
 .stake-label { color: var(--muted); font-weight: 600; }
 .stake-amount { font-size: 26px; font-weight: 800; }
@@ -200,3 +187,55 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .money-delta.minus { color: var(--red); }
 .money-delta.even { color: var(--muted); font-size: 18px; }
 .money-balance { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+
+/* Elo-Karte */
+.elo-card {
+  background: #fff; border: 1.5px solid var(--line); border-radius: 20px; padding: 16px 18px; margin-bottom: 4px;
+}
+.elo-main { display: flex; align-items: baseline; gap: 10px; }
+.elo-label { color: var(--muted); font-weight: 600; }
+.elo-value { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.elo-badge {
+  font-size: 12px; font-weight: 700; color: var(--petrol); background: #E3F1F3;
+  border-radius: 999px; padding: 3px 8px; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.elo-formats { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 6px; color: var(--muted); font-size: 14px; }
+.elo-formats b { color: var(--text); font-weight: 700; }
+.elo-card .stats { text-align: left; margin: 8px 0 0; }
+
+.broke { margin-top: 12px; padding: 14px; border-radius: 16px; background: #FDF4DF; }
+.broke p { margin: 0 0 10px; font-weight: 600; }
+
+/* Gegnerliste */
+.opponent-card { margin-bottom: 12px; }
+.opponent-card.locked { opacity: 0.6; }
+.opponent-meta { flex: 1; min-width: 0; }
+.opponent-head .stake-amount { font-size: 22px; }
+.reputation { margin: 12px 0 0; font-size: 15px; line-height: 1.4; }
+.strength { margin: 6px 0 0; font-size: 14px; color: var(--muted); font-weight: 600; }
+.record { font-weight: 500; }
+.opponent-card .btn.big { margin-top: 14px; padding: 13px; font-size: 16px; }
+.btn:disabled { opacity: 0.5; cursor: default; }
+.avatar-svg { flex: none; display: block; }
+
+/* Spielerleiste mit Gesicht und Sprechblase */
+.player-bar.with-avatar { min-height: 64px; align-items: center; }
+.player-text { display: flex; flex-direction: column; min-width: 0; }
+.player-line { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.speech {
+  margin: 4px 0 0; font-size: 13px; line-height: 1.3; color: var(--text);
+  background: #F3F0E4; border-radius: 10px; padding: 4px 8px; align-self: flex-start;
+  opacity: 0; transform: translateY(-3px); transition: opacity 0.25s, transform 0.25s;
+  max-width: 100%;
+}
+.speech.show { opacity: 1; transform: none; }
+
+/* Enthüllung im Ergebnisfenster */
+.reveal { margin-top: 14px; padding-top: 12px; border-top: 1.5px solid var(--line); }
+.reveal-elo { margin: 0; font-weight: 700; }
+.reveal-rating { margin: 4px 0 0; font-size: 14px; color: var(--muted); }
+
+.speech span { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.clock.off { white-space: nowrap; }
+.player-info { flex: 1; min-width: 0; }
+.clock { flex: none; }
