@@ -40,6 +40,8 @@ export function GameScreen({ timeControl, playerColor, engine, onRematch, onNewG
   // Uhren: verbleibende Zeit je Farbe, gemessen bis zum Beginn des aktuellen Zugs.
   const remainingRef = useRef<Record<Color, number>>({ w: timeControl.initialMs ?? 0, b: timeControl.initialMs ?? 0 });
   const turnStartRef = useRef(performance.now());
+  // Frühere Stellungen (FEN), damit die Engine Wiederholungen erkennt
+  const historyRef = useRef<string[]>([]);
   const [now, setNow] = useState(performance.now());
 
   const turn = game.turn();
@@ -59,11 +61,13 @@ export function GameScreen({ timeControl, playerColor, engine, onRematch, onNewG
   const makeMove = useCallback((from: string, to: string, promo?: string): boolean => {
     const g = gameRef.current;
     const mover = g.turn();
+    const before = g.fen();
     try {
       g.move({ from, to, promotion: promo });
     } catch {
       return false;
     }
+    historyRef.current = [...historyRef.current, before];
     if (hasClock) {
       const t0 = performance.now();
       const left = remainingRef.current[mover] - (t0 - turnStartRef.current);
@@ -97,20 +101,24 @@ export function GameScreen({ timeControl, playerColor, engine, onRematch, onNewG
     if (result || gameRef.current.turn() === playerColor) return;
     const ac = new AbortController();
     const fast = (timeControl.initialMs ?? Infinity) <= 3 * 60_000;
-    const delay = fast ? 250 + Math.random() * 700 : 600 + Math.random() * 1400;
-    const timer = setTimeout(() => {
-      engine.chooseMove(gameRef.current.fen(), ac.signal)
-        .then((uci) => {
-          if (ac.signal.aborted) return;
-          makeMove(uci.slice(0, 2), uci.slice(2, 4), uci[4]);
-        })
-        .catch(() => { /* abgebrochen */ });
-    }, delay);
-    return () => {
-      ac.abort();
-      clearTimeout(timer);
-    };
-  }, [fen, result, playerColor, engine, makeMove, timeControl.initialMs]);
+    // Mindest-Bedenkzeit, damit der Gegner nicht unnatürlich schnell zieht. Gerechnet wird parallel.
+    const minDelay = fast ? 250 + Math.random() * 700 : 600 + Math.random() * 1400;
+    const botColor = gameRef.current.turn();
+    const timeLeftMs = hasClock
+      ? remainingRef.current[botColor] - (performance.now() - turnStartRef.current)
+      : undefined;
+    const wait = new Promise((resolve) => setTimeout(resolve, minDelay));
+    Promise.all([
+      engine.chooseMove(gameRef.current.fen(), { signal: ac.signal, history: historyRef.current, timeLeftMs }),
+      wait,
+    ])
+      .then(([uci]) => {
+        if (ac.signal.aborted) return;
+        makeMove(uci.slice(0, 2), uci.slice(2, 4), uci[4]);
+      })
+      .catch(() => { /* abgebrochen */ });
+    return () => ac.abort();
+  }, [fen, result, playerColor, engine, makeMove, timeControl.initialMs, hasClock]);
 
   const legalTargets = useMemo(
     () => (selected ? game.moves({ square: selected, verbose: true }).map((m) => m.to) : []),

@@ -13,6 +13,14 @@ Diese Liste ersetzt keine fachkundige Prüfung. Vor einer Veröffentlichung lass
 | [@fontsource/inter](https://fontsource.org/fonts/inter) | Schrift Inter, selbst gehostet | SIL Open Font License 1.1 | – |
 | [Vite](https://vite.dev), [TypeScript](https://www.typescriptlang.org) | Werkzeuge beim Bauen | MIT / Apache-2.0 | Nicht Teil der ausgelieferten App-Logik |
 
+## Eigene Engine
+
+Die Engine ist selbst geschrieben. Die Stellungstabellen folgen der bekannten „Simplified Evaluation Function“
+von Tomasz Michniewski (veröffentlicht im Chess Programming Wiki). Es sind einfache Zahlentabellen, die wir
+eingetippt haben, kein fremder Code. Wir prüfen trotzdem vor dem Start, ob ein Hinweis nötig ist.
+
+- [ ] Herkunft der Stellungstabellen prüfen lassen oder durch eigene Werte ersetzen
+
 ## Figurensatz
 
 Der Prototyp nutzt vorerst die Figuren, die in react-chessboard mitgeliefert werden. Sie sehen aus wie der

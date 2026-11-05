@@ -6,5 +6,13 @@
  */
 export interface ChessEngine {
   readonly name: string;
-  chooseMove(fen: string, signal?: AbortSignal): Promise<string>;
+  chooseMove(fen: string, options?: MoveRequestOptions): Promise<string>;
+}
+
+export interface MoveRequestOptions {
+  signal?: AbortSignal;
+  /** Frühere Stellungen der Partie als FEN, damit die Engine Wiederholungen erkennt */
+  history?: string[];
+  /** Restzeit der Engine auf der Uhr in ms, falls mit Uhr gespielt wird */
+  timeLeftMs?: number;
 }

@@ -50,6 +50,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
   font-weight: 600;
   min-height: 44px;
 }
+.chip-sub { font-weight: 500; opacity: 0.6; margin-left: 2px; }
+.hint { margin: 10px 0 0; font-size: 13px; color: var(--muted); }
 .chip.selected { border-color: var(--text); background: var(--text); color: var(--bg); }
 
 /* Knöpfe */

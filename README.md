@@ -5,7 +5,8 @@ die Lizenzhinweise unter [`docs/lizenzen.md`](docs/lizenzen.md).
 
 ## Aktueller Stand
 
-Schritt 1: eine spielbare Partie gegen einen einfachen Computergegner.
+Schritt 1: eine spielbare Partie gegen einen Computergegner.
+Schritt 2: eigene Engine mit einstellbarer Stärke und menschlichen Fehlern, siehe [`docs/engine.md`](docs/engine.md).
 
 - Korrekte Schachregeln über chess.js (Rochade, en passant, Umwandlung, Patt, Remisregeln)
 - Ziehen per Drag & Drop oder Antippen, mit Anzeige der möglichen Zielfelder
@@ -28,9 +29,14 @@ Partie im selben WLAN am Handy öffnen kann.
 
 | Ordner | Inhalt |
 | --- | --- |
-| `src/engine/` | Austauschbare Gegner-Schnittstelle `ChessEngine` und die einfache eigene Engine |
+| `src/engine/` | Austauschbare Gegner-Schnittstelle `ChessEngine` und die eigene Engine |
+| `scripts/` | Testwerkzeuge, z. B. Stufen gegeneinander spielen lassen |
 | `src/game/` | Bedenkzeiten und Partie-Ergebnis |
 | `src/components/` | Partie-Bildschirm mit Brett und Uhren |
 | `src/i18n/` | Alle Texte, getrennt vom Code |
 
 Ein neuer Gegner muss nur `ChessEngine` umsetzen: Er bekommt die Stellung als FEN und liefert einen Zug wie `e2e4`.
+
+## Spielen ohne Installation
+
+Eine aktuelle Version zum Ausprobieren im Browser: https://claude.ai/artifact/Kj7vUBYaMCCAEnAGN4G5qm
