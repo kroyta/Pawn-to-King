@@ -1,0 +1,142 @@
+:root {
+  --bg: #FFFDF8;
+  --text: #16323F;
+  --muted: #5C6F78;
+  --line: #E7E2D3;
+  --red: #BE4128;
+  --gold: #E9A81C;
+  --petrol: #2F8A9C;
+  --board-max: min(100vw, calc(100dvh - 210px));
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { margin: 0; min-height: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 500;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button { font: inherit; color: inherit; cursor: pointer; }
+
+.app {
+  max-width: 560px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.app-header { padding: 14px 16px 6px; }
+.app-header h1 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+
+/* Startbildschirm */
+.setup { padding: 8px 16px 24px; display: flex; flex-direction: column; }
+.subtitle { margin: 0 0 20px; color: var(--muted); }
+.setup h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 18px 0 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  border: 1.5px solid var(--line);
+  background: #fff;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 600;
+  min-height: 44px;
+}
+.chip.selected { border-color: var(--text); background: var(--text); color: var(--bg); }
+
+/* Knöpfe */
+.btn {
+  border: 1.5px solid var(--line);
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px 18px;
+  font-weight: 700;
+  min-height: 44px;
+}
+.btn.primary { background: var(--text); border-color: var(--text); color: var(--bg); }
+.btn.danger { background: var(--red); border-color: var(--red); color: #fff; }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--muted); }
+.btn.small { padding: 8px 14px; min-height: 40px; font-size: 14px; }
+.btn.big { margin-top: 32px; padding: 16px; font-size: 17px; }
+.btn-row { display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; }
+
+/* Partie */
+.game { display: flex; flex-direction: column; align-items: center; }
+
+.player-bar {
+  width: var(--board-max);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+}
+.player-info { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.player-name { font-weight: 700; }
+.player-tag { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--text); flex: none; }
+.dot-white { background: #fff; }
+.dot-black { background: var(--text); }
+
+.clock {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  font-size: 20px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: #F1EDE2;
+  color: var(--muted);
+  min-width: 84px;
+  text-align: center;
+}
+.clock.active { background: var(--text); color: var(--bg); }
+.clock.low.active { background: var(--red); }
+.clock.off { font-size: 13px; font-weight: 600; min-width: 0; background: transparent; }
+
+.board-wrap { position: relative; width: var(--board-max); }
+
+.footer { width: var(--board-max); padding: 6px 12px 16px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.status { margin: 0; color: var(--muted); font-weight: 600; min-height: 1.4em; }
+.confirm-text { font-weight: 600; }
+
+/* Overlays */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 253, 248, 0.55);
+  z-index: 10;
+}
+.card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 20px 22px;
+  box-shadow: 0 12px 40px rgba(22, 50, 63, 0.18);
+  text-align: center;
+  max-width: 90%;
+}
+.card-label { margin: 0 0 12px; font-weight: 700; }
+.promo-row { display: flex; gap: 8px; }
+.promo-btn {
+  width: 64px; height: 64px;
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  background: #F3F0E4;
+  padding: 4px;
+}
+.promo-btn svg { width: 100%; height: 100%; }
+
+.result-title { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.02em; }
+.result-title.win { color: var(--petrol); }
+.result-title.loss { color: var(--red); }
+.result-title.draw { color: var(--gold); }
+.result-reason { margin: 6px 0 18px; color: var(--muted); }
