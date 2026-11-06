@@ -4,7 +4,14 @@ export type Mood = 'neutral' | 'happy' | 'worried' | 'thinking';
  * Platzhalter-Gesicht für Gegner mit wenigen Ausdrücken.
  * Wird später durch die gezeichneten Vektorfiguren ersetzt.
  */
-export function Avatar({ color, mood = 'neutral', size = 48 }: { color: string; mood?: Mood; size?: number }) {
+export function Avatar({ color, mood = 'neutral', size = 48, x, y }: {
+  color: string;
+  mood?: Mood;
+  size?: number;
+  /** Position, wenn das Gesicht in einer anderen SVG-Grafik steht */
+  x?: number;
+  y?: number;
+}) {
   const mouth = {
     neutral: 'M24 44 Q32 46 40 44',
     happy: 'M22 41 Q32 52 42 41',
@@ -14,7 +21,7 @@ export function Avatar({ color, mood = 'neutral', size = 48 }: { color: string; 
   const pupilDx = mood === 'thinking' ? 2 : 0;
   const pupilDy = mood === 'thinking' ? -2 : 0;
   return (
-    <svg className={`avatar-svg mood-${mood}`} width={size} height={size} viewBox="0 0 64 64" aria-hidden>
+    <svg className={`avatar-svg mood-${mood}`} x={x} y={y} width={size} height={size} viewBox="0 0 64 64" aria-hidden>
       <circle cx="32" cy="32" r="31" fill={color} />
       <circle cx="32" cy="34" r="22" fill="#FFF3E2" />
       {mood === 'worried' && (

@@ -1,7 +1,8 @@
 import type { StrengthProfile } from '../engine/humanPlayer';
 import { TIME_CONTROLS, type TimeControl } from './timeControls';
 
-export type PlaceId = 'park' | 'cafe' | 'club';
+import type { PlaceId } from './places';
+export type { PlaceId };
 
 export interface Opponent {
   id: string;
@@ -50,7 +51,7 @@ export const OPPONENTS: Opponent[] = [
   },
 ];
 
-export const PLACES: PlaceId[] = ['park', 'cafe', 'club'];
+export const OPPONENT_PLACES: PlaceId[] = ['park', 'cafe', 'club'];
 
 export function opponentById(id: string): Opponent | undefined {
   return OPPONENTS.find((o) => o.id === id);

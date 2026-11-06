@@ -9,6 +9,16 @@ Schritt 1: eine spielbare Partie gegen einen Computergegner.
 Schritt 2: eigene Engine mit einstellbarer Stärke und menschlichen Fehlern, siehe [`docs/engine.md`](docs/engine.md).
 Schritt 3: eine komplette Partie um Spielgeld gegen einen Gegner.
 Schritt 4: Elo, verdeckte Gegnerstärke mit Enthüllung und fünf Gegner mit Persönlichkeit.
+Schritt 5: klickbare Stadtkarte in Papierkarten-Optik (`src/components/CityMap.tsx`).
+
+**Stadtkarte**
+
+- Selbst gezeichnete Vektorkarte mit Park, Café Matt, Schachclub, Turnierhalle, Wohnung und Bahnhof.
+  Platzhalter ohne echte Stadt, bis feststeht, welche Stadt zuerst kommt.
+- Tippe auf einen Ort, die eigene Figur läuft über die Straßen dorthin, dann öffnet sich der Ort von unten.
+- Gegner stehen als kleine Gesichter vor ihren Gebäuden. Gesperrte Orte sind grau mit Schloss und Grund
+  (Club ab Elo 1000, Turnierhalle „Bald“, Bahnhof nach dem Stadtfinale).
+- Die Wohnung zeigt Elo, Bilanz und die freie Testpartie.
 
 **Elo und Gegner (Startwerte)**
 

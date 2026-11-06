@@ -41,7 +41,8 @@ export const de = {
     rematchFor: (amount: string) => `Revanche um ${amount}`,
     back: 'Zurück',
   },
-  stats: (w: number, d: number, l: number) => `${w} Siege · ${d} Remis · ${l} Niederlagen`,
+  stats: (w: number, d: number, l: number) =>
+    `${w} ${w === 1 ? 'Sieg' : 'Siege'} · ${d} Remis · ${l} ${l === 1 ? 'Niederlage' : 'Niederlagen'}`,
   home: {
     challenge: 'Herausforderung',
     opponents: 'Gegner',
@@ -54,7 +55,29 @@ export const de = {
     park: 'Park',
     cafe: 'Café Matt',
     club: 'Schachclub Weißer Turm',
+    hall: 'Turnierhalle',
+    home: 'Wohnung',
+    station: 'Bahnhof',
   } as Record<string, string>,
+  /** Kürzere Namen für die Beschriftung auf der Karte */
+  mapLabels: { club: 'Schachclub' } as Record<string, string>,
+  city: {
+    tapHint: 'Tippe auf einen Ort',
+    close: 'Schließen',
+    soon: 'Bald',
+    descriptions: {
+      park: 'Schach unter Kastanien. Kleine Einsätze, gemütliche Gegner.',
+      cafe: 'Starker Kaffee, stärkere Gegner.',
+      club: 'Hier spielt nur, wer eine ordentliche Elo hat.',
+      hall: 'Hier steigt bald das große Stadtturnier.',
+      home: 'Deine kleine Wohnung. Noch ziemlich leer.',
+      station: 'Von hier geht es in die nächste Stadt.',
+    } as Record<string, string>,
+    lockedText: {
+      hall: 'Das Stadtturnier kommt mit einem der nächsten Schritte.',
+      station: 'Gewinne das Stadtfinale in der Turnierhalle, dann geht es weiter in die nächste Stadt.',
+    } as Record<string, string>,
+  },
   rating: {
     yourElo: 'Deine Elo',
     provisional: 'vorläufig',

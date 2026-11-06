@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Color } from 'chess.js';
 import { GameScreen, type Persona } from './components/GameScreen';
-import { HomeScreen } from './components/HomeScreen';
+import { CityScreen } from './components/CityScreen';
 import { TestSetup, type TestSettings } from './components/TestSetup';
 import { HumanEngine } from './engine/humanEngine';
 import {
@@ -10,6 +10,7 @@ import {
 } from './game/career';
 import { formatMoney } from './game/format';
 import { dayElo, type Opponent } from './game/opponents';
+import { START_PLACE, type PlaceId } from './game/places';
 import { formatOf, overallRating } from './game/rating';
 import type { GameResult } from './game/result';
 import { loadSave, storeSave } from './game/storage';
@@ -49,6 +50,9 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>('home');
   const [match, setMatch] = useState<Match | null>(null);
   const [settlement, setSettlement] = useState<Settlement | null>(null);
+  // Wo die eigene Figur steht und welcher Ort offen ist. Nach einer Partie geht es am selben Ort weiter.
+  const [location, setLocation] = useState<PlaceId>(START_PLACE);
+  const [openPlace, setOpenPlace] = useState<PlaceId | null>(null);
 
   // Jede Änderung sofort speichern
   useEffect(() => storeSave(save), [save]);
@@ -138,14 +142,18 @@ export default function App() {
         <TestSetup
           onStart={playTest}
           onBack={() => setScreen('home')}
-          onReset={() => { setSave(newSave()); setScreen('home'); }}
+          onReset={() => { setSave(newSave()); setLocation(START_PLACE); setScreen('home'); }}
         />
       ) : (
-        <HomeScreen
+        <CityScreen
           save={save}
           notice={notice}
+          location={location}
+          openPlace={openPlace}
+          onLocationChange={setLocation}
+          onOpenPlace={setOpenPlace}
           onPlay={playOpponent}
-          onTest={() => setScreen('test')}
+          onTest={() => { setOpenPlace(null); setScreen('test'); }}
         />
       )}
     </main>
