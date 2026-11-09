@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Chess, type Color, type Square } from 'chess.js';
 import { Chessboard, defaultPieces } from 'react-chessboard';
+import { Coach } from '../engine/coach';
 import type { ChessEngine } from '../engine/types';
+import { explainBest, hintFor, MAX_TIPS_PER_GAME, TIP_KINDS, warningFor, type TipKind } from '../game/tips';
 import { Avatar, type Mood } from './Avatar';
 import { boardResult, timeoutResult, type GameResult } from '../game/result';
 import { formatClock, type TimeControl } from '../game/timeControls';
+import { formatMoney } from '../game/format';
 import { t } from '../i18n/de';
 
 const COLORS = {
@@ -13,6 +16,13 @@ const COLORS = {
   lastLight: '#F8E78F',
   lastDark: '#D9C95B',
 };
+
+export interface TipOptions {
+  /** Preis je Tipp in €, 0 = gratis */
+  prices: Record<TipKind, number>;
+  /** Bezahlt einen Tipp. false, wenn das Geld nicht reicht. */
+  onBuy: (kind: TipKind, price: number) => boolean;
+}
 
 type PromotionPiece = 'q' | 'r' | 'b' | 'n';
 
@@ -63,7 +73,11 @@ interface Props {
   /** Aussehen und Sprüche des Gegners; ohne Persona gibt es keine Sprechblase */
   persona?: Persona;
   /** Wird genau einmal aufgerufen, wenn die Partie endet */
-  onFinish?: (result: GameResult) => void;
+  onFinish?: (result: GameResult, info: { tipsUsed: number }) => void;
+  /** Tipps gegen Spielgeld; ohne diese Angabe gibt es keine Tipps (z. B. im Turnier) */
+  tips?: TipOptions;
+  /** Farben der Brettfelder (gekaufter Brett-Stil) */
+  boardColors?: { light: string; dark: string };
   /** Zusätzlicher Inhalt im Ergebnisfenster, z. B. Gewinn oder Verlust */
   resultExtra?: ReactNode;
   /** Beschriftung der Revanche; null blendet sie aus */
@@ -76,7 +90,7 @@ interface Props {
 const isLightSquare = (sq: string) => (sq.charCodeAt(0) - 97 + Number(sq[1]) - 1) % 2 === 1;
 
 export function GameScreen({
-  timeControl, playerColor, engine, opponentName = t.opponent, opponentTag, playerTag, persona, onFinish, resultExtra,
+  timeControl, playerColor, engine, opponentName = t.opponent, opponentTag, playerTag, persona, onFinish, tips, boardColors, resultExtra,
   rematchLabel = t.actions.rematch, newGameLabel = t.actions.newGame, onRematch, onNewGame,
 }: Props) {
   const gameRef = useRef(new Chess());
@@ -89,6 +103,20 @@ export function GameScreen({
   const [promotion, setPromotion] = useState<{ from: Square; to: Square } | null>(null);
   const [result, setResult] = useState<GameResult | null>(null);
   const [confirmResign, setConfirmResign] = useState(false);
+  const light = boardColors?.light ?? COLORS.light;
+  const dark = boardColors?.dark ?? COLORS.dark;
+
+  // Tipps
+  const [tipsUsed, setTipsUsed] = useState(0);
+  const [tipBusy, setTipBusy] = useState(false);
+  const [warningArmed, setWarningArmed] = useState(false);
+  const [tipText, setTipText] = useState<string | null>(null);
+  const [hintSquare, setHintSquare] = useState<string | null>(null);
+  const [arrow, setArrow] = useState<{ from: string; to: string } | null>(null);
+  const [warnPending, setWarnPending] = useState<{ from: string; to: string; promo?: string; text: string } | null>(null);
+  const coachRef = useRef<Coach | null>(null);
+  const coach = () => (coachRef.current ??= new Coach());
+  useEffect(() => () => coachRef.current?.dispose(), []);
 
   // Uhren: verbleibende Zeit je Farbe, gemessen bis zum Beginn des aktuellen Zugs.
   const remainingRef = useRef<Record<Color, number>>({ w: timeControl.initialMs ?? 0, b: timeControl.initialMs ?? 0 });
@@ -157,6 +185,9 @@ export function GameScreen({
     setFen(g.fen());
     setLastMove({ from, to });
     setSelected(null);
+    setHintSquare(null);
+    setArrow(null);
+    if (mover !== opponentColor) setTipText(null);
     const res = boardResult(g);
     if (res) {
       finish(res);
@@ -174,10 +205,10 @@ export function GameScreen({
   useEffect(() => {
     if (result && !reportedRef.current) {
       reportedRef.current = true;
-      onFinish?.(result);
+      onFinish?.(result, { tipsUsed });
       say(result.winner === null ? 'draw' : result.winner === playerColor ? 'botLoses' : 'botWins');
     }
-  }, [result, onFinish, say, playerColor]);
+  }, [result, onFinish, say, playerColor, tipsUsed]);
 
   // Uhr-Ticker und Prüfung auf Zeitüberschreitung
   useEffect(() => {
@@ -226,9 +257,33 @@ export function GameScreen({
     [selected, fen],
   );
 
+  const canInput = isPlayerTurn && !tipBusy && !warnPending;
+
+  /** Führt den Zug aus. Ist die Warnung aktiv, prüft der Trainer ihn vorher. */
+  const commitPlayerMove = (from: string, to: string, promo?: string): boolean => {
+    if (!warningArmed) return makeMove(from, to, promo);
+    setWarningArmed(false);
+    setTipBusy(true);
+    setTipText(t.tips.thinking);
+    coach().analyze(gameRef.current.fen(), historyRef.current)
+      .then((analysis) => {
+        const warning = warningFor(analysis, from + to + (promo ?? ''));
+        if (warning) {
+          setTipText(null);
+          setWarnPending({ from, to, promo, text: warning });
+        } else {
+          setTipText(t.tips.safe);
+          makeMove(from, to, promo);
+        }
+      })
+      .catch(() => makeMove(from, to, promo))
+      .finally(() => setTipBusy(false));
+    return false;
+  };
+
   /** Versucht einen Spielerzug; öffnet bei Bauernumwandlung die Auswahl. */
   const tryPlayerMove = (from: Square, to: Square): boolean => {
-    if (!isPlayerTurn) return false;
+    if (!canInput) return false;
     const candidates = game.moves({ square: from, verbose: true }).filter((m) => m.to === to);
     if (candidates.length === 0) return false;
     if (candidates.some((m) => m.promotion)) {
@@ -236,11 +291,65 @@ export function GameScreen({
       setSelected(null);
       return false;
     }
-    return makeMove(from, to);
+    return commitPlayerMove(from, to);
   };
 
+  // Wie viele eigene Züge schon gespielt sind (für die Rettung)
+  const plies = game.history().length;
+  const ownMoves = playerColor === 'w' ? Math.ceil(plies / 2) : Math.floor(plies / 2);
+
+  const buyTip = (kind: TipKind) => {
+    if (!tips || !canInput || tipsUsed >= MAX_TIPS_PER_GAME) return;
+    if (!tips.onBuy(kind, tips.prices[kind])) {
+      setTipText(t.tips.notEnough);
+      return;
+    }
+    setTipsUsed((n) => n + 1);
+    const g = gameRef.current;
+    if (kind === 'warning') {
+      setWarningArmed(true);
+      setTipText(t.tips.armed);
+      return;
+    }
+    if (kind === 'undo') {
+      g.undo();
+      g.undo();
+      historyRef.current = historyRef.current.slice(0, -2);
+      const last = g.history({ verbose: true }).at(-1);
+      setLastMove(last ? { from: last.from, to: last.to } : null);
+      setFen(g.fen());
+      setHintSquare(null);
+      setArrow(null);
+      setTipText(t.tips.undone);
+      return;
+    }
+    const fenNow = g.fen();
+    setTipBusy(true);
+    setTipText(t.tips.thinking);
+    coach().analyze(fenNow, historyRef.current)
+      .then((analysis) => {
+        if (gameRef.current.fen() !== fenNow) return;
+        if (kind === 'hint') {
+          const h = hintFor(fenNow, analysis);
+          setHintSquare(h.square);
+          setTipText(h.text);
+        } else {
+          const b = explainBest(fenNow, analysis);
+          setArrow({ from: b.from, to: b.to });
+          setTipText(b.text);
+        }
+      })
+      .catch(() => setTipText(null))
+      .finally(() => setTipBusy(false));
+  };
+
+  const tipDisabled = (kind: TipKind) =>
+    !canInput || tipsUsed >= MAX_TIPS_PER_GAME
+    || (kind === 'warning' && warningArmed)
+    || (kind === 'undo' && ownMoves < 1);
+
   const onSquareClick = ({ square, piece }: { square: string; piece: { pieceType: string } | null }) => {
-    if (!isPlayerTurn) return;
+    if (!canInput) return;
     const sq = square as Square;
     if (selected && legalTargets.includes(sq)) {
       tryPlayerMove(selected, sq);
@@ -261,6 +370,9 @@ export function GameScreen({
       mark(lastMove.to);
     }
     if (selected) mark(selected);
+    if (hintSquare) {
+      styles[hintSquare] = { ...styles[hintSquare], boxShadow: 'inset 0 0 0 4px #2F8A9C' };
+    }
     for (const sq of legalTargets) {
       const occupied = !!game.get(sq);
       styles[sq] = {
@@ -280,7 +392,7 @@ export function GameScreen({
       }
     }
     return styles;
-  }, [lastMove, selected, legalTargets, fen]);
+  }, [lastMove, selected, legalTargets, fen, hintSquare]);
 
   const clockMs = (c: Color) => {
     const base = remainingRef.current[c];
@@ -308,15 +420,16 @@ export function GameScreen({
             id: 'main-board',
             position: fen,
             boardOrientation: playerColor === 'w' ? 'white' : 'black',
-            lightSquareStyle: { backgroundColor: COLORS.light },
-            darkSquareStyle: { backgroundColor: COLORS.dark },
-            lightSquareNotationStyle: { color: COLORS.dark, fontWeight: 700 },
-            darkSquareNotationStyle: { color: COLORS.light, fontWeight: 700 },
+            lightSquareStyle: { backgroundColor: light },
+            darkSquareStyle: { backgroundColor: dark },
+            lightSquareNotationStyle: { color: dark, fontWeight: 700 },
+            darkSquareNotationStyle: { color: light, fontWeight: 700 },
+            arrows: arrow ? [{ startSquare: arrow.from, endSquare: arrow.to, color: '#2F8A9C' }] : [],
             dropSquareStyle: { boxShadow: 'inset 0 0 0 3px rgba(22,50,63,0.35)' },
             squareStyles,
             animationDurationInMs: 180,
             allowDrawingArrows: false,
-            canDragPiece: ({ piece }) => isPlayerTurn && piece.pieceType[0] === playerColor,
+            canDragPiece: ({ piece }) => canInput && piece.pieceType[0] === playerColor,
             onPieceDrag: ({ square }) => {
               if (square) setSelected(square as Square);
             },
@@ -340,7 +453,7 @@ export function GameScreen({
                       key={p}
                       className="promo-btn"
                       onClick={() => {
-                        makeMove(promotion.from, promotion.to, p);
+                        commitPlayerMove(promotion.from, promotion.to, p);
                         setPromotion(null);
                       }}
                     >
@@ -348,6 +461,28 @@ export function GameScreen({
                     </button>
                   );
                 })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {warnPending && (
+          <div className="overlay">
+            <div className="card warn">
+              <p className="warn-title">{t.tips.warnTitle}</p>
+              <p className="warn-text">{warnPending.text}</p>
+              <div className="btn-row">
+                <button className="btn primary" onClick={() => setWarnPending(null)}>{t.tips.chooseOther}</button>
+                <button
+                  className="btn"
+                  onClick={() => {
+                    const w = warnPending;
+                    setWarnPending(null);
+                    makeMove(w.from, w.to, w.promo);
+                  }}
+                >
+                  {t.tips.playAnyway}
+                </button>
               </div>
             </div>
           </div>
@@ -378,8 +513,28 @@ export function GameScreen({
         clock={hasClock ? clockMs(playerColor) : null}
       />
 
+      {tips && !result && (
+        <div className="tips">
+          <div className="tips-head">
+            <span>{t.tips.title}</span>
+            <span>{t.tips.left(MAX_TIPS_PER_GAME - tipsUsed)}</span>
+          </div>
+          <div className="tip-row">
+            {TIP_KINDS.map((kind) => (
+              <button key={kind} className={`tip tip-${kind}`} disabled={tipDisabled(kind)} onClick={() => buyTip(kind)}>
+                <TipIcon kind={kind} />
+                <span className="tip-name">{t.tips.names[kind]}</span>
+                <span className="tip-price">{tips.prices[kind] === 0 ? t.tips.free : formatMoney(tips.prices[kind])}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="footer">
-        <p className="status">{result ? ' ' : status}</p>
+        {tipText && !result
+          ? <p className="tip-text">{tipText}</p>
+          : <p className="status">{result ? '\u00a0' : status}</p>}
         {!result && (
           confirmResign ? (
             <div className="btn-row">
@@ -396,6 +551,28 @@ export function GameScreen({
       </div>
     </div>
   );
+}
+
+function TipIcon({ kind }: { kind: TipKind }) {
+  const common = {
+    width: 22, height: 22, viewBox: '0 0 24 24', fill: 'none', strokeWidth: 2.2,
+    strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true,
+  };
+  switch (kind) {
+    case 'warning':
+      return <svg {...common} stroke="#E9A81C"><path d="M12 3 L22 20 H2 Z" /><path d="M12 10 v4 M12 17 v.5" /></svg>;
+    case 'hint':
+      return (
+        <svg {...common} stroke="#2F8A9C">
+          <path d="M9 18 h6 M10 21 h4" />
+          <path d="M12 3 a6 6 0 0 1 3.5 10.9 c-.6 .5 -1 1.2 -1 2.1 h-5 c0 -.9 -.4 -1.6 -1 -2.1 A6 6 0 0 1 12 3 Z" />
+        </svg>
+      );
+    case 'best':
+      return <svg {...common} stroke="#5E8A4E"><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="4" /></svg>;
+    case 'undo':
+      return <svg {...common} stroke="#BE4128"><path d="M9 7 H4 V2" /><path d="M4.5 7 A8.5 8.5 0 1 1 3.5 13" /></svg>;
+  }
 }
 
 function PlayerBar({ name, tag, color, active, clock, avatar, bubble }: {

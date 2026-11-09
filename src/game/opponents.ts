@@ -74,12 +74,14 @@ export function dayElo(o: Opponent, date = new Date()): number {
 }
 
 /**
- * Geschätzte Spanne für einen bekannten Gegner. Wird mit jeder Partie enger,
+ * Geschätzte Spanne für einen bekannten Gegner. Wird mit jeder Partie und mit einem Dossier enger,
  * zeigt aber nie die genaue Zahl. Die Mitte liegt absichtlich nicht genau auf der Grundstärke.
  */
-export function knownRange(o: Opponent, gamesPlayed: number): [number, number] | null {
-  if (gamesPlayed <= 0) return null;
-  const half = gamesPlayed === 1 ? 175 : gamesPlayed === 2 ? 125 : gamesPlayed < 5 ? 100 : 75;
+export function knownRange(o: Opponent, gamesPlayed: number, dossier = false): [number, number] | null {
+  if (gamesPlayed <= 0 && !dossier) return null;
+  let half = gamesPlayed <= 0 ? Infinity : gamesPlayed === 1 ? 175 : gamesPlayed === 2 ? 125 : gamesPlayed < 5 ? 100 : 75;
+  // Ein Dossier verrät die Stärke deutlich genauer
+  if (dossier) half = Math.min(half, 50);
   const center = o.elo + Math.round((hash01(`${o.id}:center`) - 0.5) * 80);
   const round = (x: number) => Math.round(x / 25) * 25;
   return [round(center - half), round(center + half)];

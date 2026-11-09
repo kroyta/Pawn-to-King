@@ -5,7 +5,21 @@ const KEY = 'pawn-to-king.save.v1';
 
 /** Älteren Spielstand auf die aktuelle Version bringen. */
 function migrate(data: any): SaveData | null {
-  if (data?.version === 2) return data as SaveData;
+  if (data?.version === 3) return data as SaveData;
+  if (data?.version === 2) {
+    // Version 3 bringt Tagesaufgabe, Einkäufe, Dossiers und Turnier
+    const fresh = newSave();
+    return {
+      ...data,
+      version: 3,
+      dailySolved: fresh.dailySolved,
+      owned: fresh.owned,
+      boardTheme: fresh.boardTheme,
+      dossiers: fresh.dossiers,
+      tournament: fresh.tournament,
+      cityFinalWon: fresh.cityFinalWon,
+    } as SaveData;
+  }
   if (data?.version === 1 && typeof data.balance === 'number') {
     // Version 1 kannte noch keine Elo. Eine offene Partie wird ohne Elo-Wertung als verloren gebucht.
     return {

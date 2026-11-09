@@ -10,6 +10,19 @@ Schritt 2: eigene Engine mit einstellbarer Stärke und menschlichen Fehlern, sie
 Schritt 3: eine komplette Partie um Spielgeld gegen einen Gegner.
 Schritt 4: Elo, verdeckte Gegnerstärke mit Enthüllung und fünf Gegner mit Persönlichkeit.
 Schritt 5: klickbare Stadtkarte in Papierkarten-Optik (`src/components/CityMap.tsx`).
+Schritt 6: Tipps, Tagesaufgabe, Einkäufe und das Stadtturnier.
+
+**Tipps, Tagesaufgabe, Einkäufe, Turnier (Startwerte)**
+
+- Tipps in Geldpartien, Preis als Anteil am Einsatz (mind. 1 €), höchstens 3 pro Partie, in der Testpartie gratis:
+  Warnung 5 % (prüft den nächsten Zug vor dem Ausführen), Hinweis 10 % (markiert die wichtige Figur),
+  Bester Zug 20 % (Pfeil mit kurzer Erklärung), Rettung 35 % (nimmt den letzten Zug samt Antwort zurück).
+- Sieg ohne Tipps: Bonus von 25 % des Einsatzes. Mit Tipps steigt die Elo nur zu einem Viertel, Verluste zählen voll.
+- Tagesaufgabe: jeden Tag ein Matt in 1 (selbst erstellt, `src/game/puzzles.ts`), Belohnung 15 €.
+- Wohnung: Einrichtung kaufen (verändert die Beschreibung) und Brett-Stile (Walnuss, Schiefer).
+- Dossier über einen Gegner: 25 % des Einsatzes, zeigt seinen Spielstil und eine engere Stärke-Spanne.
+- Stadtturnier in der Turnierhalle: ab Elo 900, Startgeld 150 €, Preisgeld 1.000 €, Halbfinale und Finale im K.-o.-System,
+  Blitz-Stechen bei Remis, keine Tipps. Der Sieg öffnet den Bahnhof.
 
 **Stadtkarte**
 
@@ -62,7 +75,7 @@ Partie im selben WLAN am Handy öffnen kann.
 | --- | --- |
 | `src/engine/` | Austauschbare Gegner-Schnittstelle `ChessEngine` und die eigene Engine |
 | `scripts/` | Testwerkzeuge, z. B. Stufen gegeneinander spielen lassen |
-| `src/game/` | Bedenkzeiten, Partie-Ergebnis, Gegner (`opponents.ts`), Elo (`rating.ts`), Geld und Bilanz (`career.ts`), Speichern (`storage.ts`) |
+| `src/game/` | Bedenkzeiten, Partie-Ergebnis, Gegner (`opponents.ts`), Elo (`rating.ts`), Geld und Bilanz (`career.ts`), Speichern (`storage.ts`), Tipps, Laden, Tagesaufgaben, Turnier |
 | `src/components/` | Startseite, Partie-Bildschirm mit Brett und Uhren, freie Testpartie |
 | `src/i18n/` | Alle Texte, getrennt vom Code |
 

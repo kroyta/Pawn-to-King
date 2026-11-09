@@ -71,9 +71,14 @@ export interface RatingChange {
  * Wertung nach einer Partie anpassen. score: 1 Sieg, 0.5 Remis, 0 Niederlage.
  * Ein neues Format startet mit der Gesamtwertung.
  */
-export function applyResult(r: Ratings, format: RatingFormat, opponentElo: number, score: number): { ratings: Ratings; change: RatingChange } {
+export function applyResult(
+  r: Ratings, format: RatingFormat, opponentElo: number, score: number,
+  /** Faktor für Gewinne, z. B. kleiner bei Partien mit Tipps. Verluste zählen immer voll. */
+  gainFactor = 1,
+): { ratings: Ratings; change: RatingChange } {
   const current = r[format] ?? { value: overallRating(r).value, games: 0 };
-  const delta = Math.round(kFactor(current.games) * (score - expectedScore(current.value, opponentElo)));
+  let delta = Math.round(kFactor(current.games) * (score - expectedScore(current.value, opponentElo)));
+  if (delta > 0) delta = Math.round(delta * gainFactor);
   const next: Rating = { value: Math.max(100, current.value + delta), games: current.games + 1 };
   return {
     ratings: { ...r, [format]: next },

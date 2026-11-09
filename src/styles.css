@@ -280,3 +280,65 @@ button { font: inherit; color: inherit; cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   .sheet, .sheet-backdrop, .walker.walking { animation: none; }
 }
+
+/* Tipps */
+.tips { width: var(--board-max); padding: 2px 12px 0; }
+.tips-head { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+.tip-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.tip {
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  background: #fff; border: 1.5px solid var(--line); border-radius: 14px; padding: 6px 2px 5px;
+  min-height: 58px;
+}
+.tip:disabled { opacity: 0.4; cursor: default; }
+.tip:not(:disabled):active { transform: scale(0.96); }
+.tip-name { font-size: 12px; font-weight: 700; line-height: 1.1; text-align: center; }
+.tip-price { font-size: 11px; font-weight: 600; color: var(--muted); }
+.tip-text {
+  margin: 0; padding: 8px 12px; align-self: stretch; border-radius: 12px; background: #E3F1F3;
+  font-size: 14px; line-height: 1.35; font-weight: 600;
+}
+.card.warn { max-width: 300px; }
+.warn-title { margin: 0; font-size: 22px; font-weight: 800; color: var(--gold); }
+.warn-text { margin: 6px 0 16px; line-height: 1.4; }
+.money-bonus { margin: 2px 0 0; font-size: 14px; font-weight: 700; color: var(--petrol); }
+.money-note { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+
+/* Tagesaufgabe */
+.puzzle { padding: 4px 16px 24px; display: flex; flex-direction: column; }
+.puzzle h2 { margin: 4px 0 2px; font-size: 22px; font-weight: 800; }
+.puzzle-task { margin: 0 0 12px; color: var(--muted); font-weight: 600; }
+.puzzle-board { width: 100%; max-width: 480px; align-self: center; }
+.puzzle-msg { margin: 12px 0 0; padding: 12px 14px; border-radius: 14px; font-weight: 700; }
+.puzzle-msg.ok { background: #E3F1F3; color: var(--petrol); }
+.puzzle-msg.no { background: #FBEAE5; color: var(--red); }
+.puzzle .btn.big { margin-top: 16px; }
+.daily-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin: 0 4px 10px; padding: 10px 12px 10px 14px; border-radius: 16px; background: #FDF4DF;
+}
+.daily-banner b { display: block; }
+.daily-banner span { font-size: 13px; color: var(--muted); font-weight: 600; }
+
+/* Wohnung, Laden, Dossier, Turnier */
+.sheet-sub { margin: 18px 0 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.daily-banner.home { margin: 12px 0 0; }
+.shop-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.shop-list li {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  background: #fff; border: 1.5px solid var(--line); border-radius: 14px; padding: 8px 8px 8px 14px; font-weight: 600;
+}
+.shop-list li.owned { background: #F3F0E4; }
+.shop-owned { font-size: 13px; color: var(--petrol); font-weight: 700; padding: 0 8px; }
+.theme-name { display: inline-flex; align-items: center; gap: 10px; }
+.theme-swatch { width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--line); }
+.dossier { margin: 10px 0 0; padding: 10px 12px; border-radius: 12px; background: #F3F0E4; font-size: 14px; line-height: 1.4; }
+.dossier-btn { align-self: flex-start; padding-left: 0; margin-top: 4px; color: var(--petrol); }
+.opponent-card.tournament .opponent-place { line-height: 1.35; }
+.tour-facts { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 12px; color: var(--muted); font-size: 14px; }
+.tour-facts b { color: var(--text); }
+.tour-field { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 10px; }
+.tour-field .strength { margin: 0; }
+.tour-player { display: inline-flex; align-items: center; gap: 5px; font-size: 14px; font-weight: 600; }
+.tour-status { margin: 12px 0 0; padding: 10px 12px; border-radius: 12px; background: #FDF4DF; font-weight: 700; }
+.tour-status.win { background: #E3F1F3; color: var(--petrol); }
