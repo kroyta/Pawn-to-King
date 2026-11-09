@@ -4,7 +4,7 @@ import { Chessboard, defaultPieces } from 'react-chessboard';
 import { Coach } from '../engine/coach';
 import type { ChessEngine } from '../engine/types';
 import { explainBest, hintFor, MAX_TIPS_PER_GAME, TIP_KINDS, warningFor, type TipKind } from '../game/tips';
-import { Avatar, type Mood } from './Avatar';
+import { Portrait, type Mood } from './Avatar';
 import { boardResult, timeoutResult, type GameResult } from '../game/result';
 import { formatClock, type TimeControl } from '../game/timeControls';
 import { formatMoney } from '../game/format';
@@ -41,6 +41,8 @@ export interface ReactionLines {
 
 export interface Persona {
   color: string;
+  /** Freigestellte Figur je Gesichtsausdruck, falls vorhanden */
+  sprites?: Record<Mood, string>;
   lines: ReactionLines;
 }
 
@@ -415,7 +417,7 @@ export function GameScreen({
         color={opponentColor}
         active={!result && turn === opponentColor}
         clock={hasClock ? clockMs(opponentColor) : null}
-        avatar={persona && <Avatar color={persona.color} mood={!result && turn === opponentColor && mood === 'neutral' ? 'thinking' : mood} size={40} />}
+        avatar={persona && <Portrait color={persona.color} sprites={persona.sprites} mood={!result && turn === opponentColor && mood === 'neutral' ? 'thinking' : mood} size={40} />}
         bubble={bubble}
       />
 

@@ -1,4 +1,5 @@
 import { canAfford, FREE_GAME_REWARD, recordOf, type SaveData } from '../game/career';
+import { OPPONENT_ART } from '../game/art';
 import { formatMoney } from '../game/format';
 import { knownRange, opponentById, OPPONENTS, type Opponent } from '../game/opponents';
 import { ALL_PLACES, type PlaceId } from '../game/places';
@@ -7,7 +8,7 @@ import { overallRating } from '../game/rating';
 import { BOARD_THEMES, dossierPrice, FURNITURE } from '../game/shop';
 import { CITY_TOURNAMENT } from '../game/tournament';
 import { t } from '../i18n/de';
-import { Avatar } from './Avatar';
+import { Portrait } from './Avatar';
 import { CityMap, type MapPlace } from './CityMap';
 
 export interface CityActions {
@@ -58,7 +59,8 @@ export function CityScreen({ save, notice, location, openPlace, onLocationChange
       label: t.mapLabels[id] ?? t.places[id],
       locked,
       lockLabel,
-      opponents: OPPONENTS.filter((o) => o.place === id).map((o) => o.avatar.color),
+      opponents: OPPONENTS.filter((o) => o.place === id)
+        .map((o) => ({ color: o.avatar.color, sprite: OPPONENT_ART[o.id]?.neutral })),
     };
   });
 
@@ -249,7 +251,7 @@ function TournamentCard({ save, overallElo, actions }: { save: SaveData; overall
         <span className="strength">{t.tournament.field}</span>
         {T.field.map((id) => {
           const o = opponentById(id)!;
-          return <span key={id} className="tour-player"><Avatar color={o.avatar.color} size={22} />{t.opponents[id].name}</span>;
+          return <span key={id} className="tour-player"><Portrait color={o.avatar.color} sprites={OPPONENT_ART[id]} size={22} />{t.opponents[id].name}</span>;
         })}
       </div>
 
@@ -327,7 +329,7 @@ function OpponentCard({ opponent: o, save, overallElo, actions }: {
   return (
     <article className={`opponent-card${locked ? ' locked' : ''}`}>
       <div className="opponent-head">
-        <Avatar color={o.avatar.color} size={52} />
+        <Portrait color={o.avatar.color} sprites={OPPONENT_ART[o.id]} size={52} />
         <div className="opponent-meta">
           <p className="opponent-name">{text.name}</p>
           <p className="opponent-place">{o.timeControl.label}</p>

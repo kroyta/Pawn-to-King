@@ -9,6 +9,7 @@ import {
   canAfford, newSave, outcomeFor, resolveAbandoned, settleMatch, spend, startMatch,
   type SaveData, type Settlement,
 } from './game/career';
+import { OPPONENT_ART } from './game/art';
 import { formatMoney } from './game/format';
 import { dayElo, opponentById, type Opponent } from './game/opponents';
 import { START_PLACE, type PlaceId } from './game/places';
@@ -102,7 +103,7 @@ export default function App() {
       playerColor: randomColor(),
       engine: new HumanEngine(elo, text.name, opponent.style),
       opponent,
-      persona: { color: opponent.avatar.color, lines: text.lines },
+      persona: { color: opponent.avatar.color, sprites: OPPONENT_ART[opponent.id], lines: text.lines },
     });
   };
 

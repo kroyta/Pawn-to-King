@@ -45,3 +45,20 @@ export function Avatar({ color, mood = 'neutral', size = 48, x, y }: {
     </svg>
   );
 }
+
+/**
+ * Porträt eines Gegners: Kopf der freigestellten Figur, wenn es eine gibt, sonst das Platzhalter-Gesicht.
+ */
+export function Portrait({ color, sprites, mood = 'neutral', size = 48 }: {
+  color: string;
+  sprites?: Record<Mood, string>;
+  mood?: Mood;
+  size?: number;
+}) {
+  if (!sprites) return <Avatar color={color} mood={mood} size={size} />;
+  return (
+    <span className="portrait" style={{ width: size, height: size, background: color }} aria-hidden>
+      <img src={sprites[mood]} alt="" draggable={false} />
+    </span>
+  );
+}

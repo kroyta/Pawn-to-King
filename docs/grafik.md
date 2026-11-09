@@ -20,7 +20,23 @@ Ziel ist ein eigener, warmer Stil, der nicht nach Governor of Poker aussieht.
 | B | Flacher Retro-Poster-Stil mit fester Palette | https://www.canva.com/M/MAHabIsNyUw |
 | C | Spielzeugstadt von schräg oben (isometrisch) | https://www.canva.com/M/MAHabALJzlc |
 
+## Entscheidung und Stand
+
+- **Stil C** (Spielzeugstadt von schräg oben) für die Gebäude. Figuren im selben Stil, freigestellt.
+- Erzeugt mit Canva, Probe C als Vorlage für einen einheitlichen Stil. Die Bilder liegen in `src/assets/`
+  (WebP, freigestellt). Canva dient nur als Werkzeug, gespeichert wird im Projekt.
+- Fertig: sechs Gebäude (Park, Café Matt, Schachclub, Turnierhalle, Wohnung, Bahnhof) und Heinz mit vier Ausdrücken
+  (neutral, freut sich, besorgt, nachdenklich).
+- Noch offen: die anderen vier Gegner, Deko für die leeren Flächen der Karte, größere Auflösung.
+
+## Neue Grafiken verarbeiten
+
+1. Bild im gleichen Stil erzeugen, einfarbiger heller Hintergrund, Figurenblätter mit Abstand zwischen den Figuren.
+2. Bilder als PNG in einen Ordner legen (1.png, 2.png, ...).
+3. `python3 scripts/process-art.py ORDNER` stellt frei, schneidet zu und speichert WebP in `src/assets/`.
+   Die Reihenfolge der Seiten steht im Skript.
+
 ## Offen
 
-- [ ] Stilrichtung wählen
+- [x] Stilrichtung wählen
 - [ ] Nutzungsrechte der KI-Bilder vor einer Veröffentlichung prüfen (siehe `lizenzen.md`)
