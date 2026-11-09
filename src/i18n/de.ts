@@ -4,6 +4,22 @@ import type { ReactionLines } from '../components/GameScreen';
 export const de = {
   appTitle: 'Pawn to King',
   sound: { on: 'Ton an', off: 'Ton aus' },
+  debug: {
+    title: 'Debug',
+    open: 'Debug-Menü',
+    state: (money: string, elo: number) => `Kontostand ${money} · Elo ${elo}. Nur zum Testen.`,
+    money: 'Geld',
+    zero: 'Auf 0 €',
+    progress: 'Fortschritt',
+    resetDaily: 'Tagesaufgabe neu',
+    finalOn: 'Stadtfinale gewonnen',
+    finalOff: 'Stadtfinale zurücknehmen',
+    clearTournament: 'Turnier abbrechen',
+    danger: 'Alles',
+    reset: 'Spielstand zurücksetzen',
+    hide: 'Debug ausblenden',
+    enabled: 'Debug-Menü aktiviert',
+  },
   setup: {
     subtitle: 'Eine Partie gegen den Computer',
     timeControl: 'Bedenkzeit',

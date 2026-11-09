@@ -18,6 +18,8 @@ import { formatOf, overallRating } from './game/rating';
 import type { GameResult } from './game/result';
 import { themeById } from './game/shop';
 import { isMuted, play, setMuted } from './game/sound';
+import { debugEnabled, setDebugEnabled } from './game/debug';
+import { DebugPanel } from './components/DebugPanel';
 import { loadSave, storeSave } from './game/storage';
 import type { TimeControl } from './game/timeControls';
 import { TIP_KINDS, tipPrice, type TipKind } from './game/tips';
@@ -80,6 +82,21 @@ export default function App() {
 
   const boardColors = themeById(save.boardTheme);
   const [muted, setMutedState] = useState(isMuted);
+
+  // Debug: fünfmal schnell auf den Titel tippen oder ?debug an die Adresse hängen
+  const [debugOn, setDebugOn] = useState(debugEnabled);
+  const [debugOpen, setDebugOpen] = useState(false);
+  const titleTaps = useRef<number[]>([]);
+  const onTitleTap = () => {
+    const now = Date.now();
+    titleTaps.current = [...titleTaps.current.filter((x) => now - x < 2000), now];
+    if (titleTaps.current.length >= 5) {
+      titleTaps.current = [];
+      setDebugEnabled(true);
+      setDebugOn(true);
+      setDebugOpen(true);
+    }
+  };
 
   const beginMatch = (base: SaveData, opponent: Opponent, kind: MatchKind, timeControl: TimeControl) => {
     const elo = dayElo(opponent);
@@ -222,8 +239,13 @@ export default function App() {
   return (
     <main className="app">
       <header className="app-header">
-        <h1>{t.appTitle}</h1>
+        <h1><button className="title-btn" onClick={onTitleTap}>{t.appTitle}</button></h1>
         <div className="header-right">
+          {debugOn && (
+            <button className="sound-btn" aria-label={t.debug.open} title={t.debug.open} onClick={() => setDebugOpen(true)}>
+              <span aria-hidden>🐞</span>
+            </button>
+          )}
           <button
             className="sound-btn"
             aria-label={muted ? t.sound.on : t.sound.off}
@@ -238,6 +260,15 @@ export default function App() {
           </span>
         </div>
       </header>
+
+      {debugOpen && (
+        <DebugPanel
+          save={save}
+          onChange={(s) => { setSave(s); if (s.balance !== save.balance) play('coin'); }}
+          onClose={() => setDebugOpen(false)}
+          onDisable={() => { setDebugEnabled(false); setDebugOn(false); setDebugOpen(false); }}
+        />
+      )}
 
       {match ? (
         <GameScreen

@@ -1,35 +1,47 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { CITY_MAP, OPPONENT_MAP_SPOTS } from '../game/art';
 import type { PlaceId } from '../game/places';
-import { BUILDING_ART } from '../game/art';
 import { Avatar } from './Avatar';
 
 /**
- * Stadtkarte in Papierkarten-Optik mit Gebäuden im Stil C (Spielzeugstadt, siehe docs/grafik.md).
- * Straßen und Hintergrund sind selbst gezeichnet. Keine echte Stadt, keine Wahrzeichen.
+ * Stadtkarte: ein zusammenhängendes Kartenbild im Stil C (siehe docs/grafik.md).
+ * Darüber liegen Tippflächen, Namensschilder, Sperren, Gegner und die eigene Figur.
+ * Alle Koordinaten sind Pixel im Kartenbild (1064 × 1303).
  */
+const MAP_W = 1064;
+const MAP_H = 1303;
+/** Maßstab für Schilder und Figuren, damit sie auf dem Handy so groß wirken wie vorher */
+const UI = 2.6;
 
 // Straßennetz: Kreuzungen und Eingänge der Orte. Die eigene Figur läuft nur auf diesen Wegen.
-type NodeId = PlaceId | 'nTop' | 'nMid' | 'nLow' | 'nSouth';
+type NodeId = PlaceId | 'nTop' | 'nMid';
 type Point = { x: number; y: number };
 
 const NODES: Record<NodeId, Point> = {
-  park: { x: 70, y: 150 },
-  nTop: { x: 195, y: 150 },
-  cafe: { x: 298, y: 150 },
-  hall: { x: 95, y: 310 },
-  nMid: { x: 195, y: 310 },
-  club: { x: 302, y: 310 },
-  home: { x: 92, y: 440 },
-  nLow: { x: 195, y: 440 },
-  nSouth: { x: 195, y: 578 },
-  station: { x: 295, y: 578 },
+  park: { x: 330, y: 402 },
+  nTop: { x: 565, y: 410 },
+  cafe: { x: 790, y: 418 },
+  hall: { x: 290, y: 790 },
+  nMid: { x: 542, y: 798 },
+  club: { x: 775, y: 806 },
+  station: { x: 528, y: 985 },
+  home: { x: 516, y: 1110 },
 };
 
 const EDGES: [NodeId, NodeId][] = [
   ['park', 'nTop'], ['nTop', 'cafe'], ['nTop', 'nMid'],
-  ['hall', 'nMid'], ['nMid', 'club'], ['nMid', 'nLow'],
-  ['home', 'nLow'], ['nLow', 'nSouth'], ['nSouth', 'station'],
+  ['hall', 'nMid'], ['nMid', 'club'], ['nMid', 'station'], ['station', 'home'],
 ];
+
+/** Tippfläche und Schild je Ort */
+const PLACE_AREAS: Record<PlaceId, { x: number; y: number; w: number; h: number; label: Point }> = {
+  park: { x: 110, y: 30, w: 470, h: 365, label: { x: 345, y: 40 } },
+  cafe: { x: 600, y: 0, w: 400, h: 410, label: { x: 760, y: 40 } },
+  hall: { x: 60, y: 430, w: 480, h: 350, label: { x: 300, y: 440 } },
+  club: { x: 565, y: 430, w: 445, h: 370, label: { x: 790, y: 440 } },
+  home: { x: 30, y: 805, w: 470, h: 365, label: { x: 265, y: 820 } },
+  station: { x: 545, y: 830, w: 495, h: 380, label: { x: 790, y: 840 } },
+};
 
 function findPath(from: NodeId, to: NodeId): NodeId[] {
   const prev = new Map<NodeId, NodeId | null>([[from, null]]);
@@ -50,27 +62,17 @@ function findPath(from: NodeId, to: NodeId): NodeId[] {
   return path[0] === from ? path : [to];
 }
 
-/** Bildfläche je Ort (unten am Eingang) und Position der Beschriftung */
-const PLACE_BOXES: { id: PlaceId; box: { x: number; y: number; w: number; h: number }; label: Point }[] = [
-  { id: 'park', box: { x: 8, y: 22, w: 168, h: 128 }, label: { x: 92, y: 20 } },
-  { id: 'cafe', box: { x: 228, y: 14, w: 150, h: 134 }, label: { x: 300, y: 18 } },
-  { id: 'hall', box: { x: 14, y: 172, w: 162, h: 134 }, label: { x: 95, y: 176 } },
-  { id: 'club', box: { x: 220, y: 172, w: 160, h: 134 }, label: { x: 298, y: 176 } },
-  { id: 'home', box: { x: 34, y: 322, w: 116, h: 116 }, label: { x: 92, y: 326 } },
-  { id: 'station', box: { x: 212, y: 448, w: 168, h: 128 }, label: { x: 296, y: 452 } },
-];
-
-/** Geschwindigkeit der Figur in Kartenpunkten pro Sekunde */
-const WALK_SPEED = 260;
+/** Geschwindigkeit der Figur in Kartenpixeln pro Sekunde */
+const WALK_SPEED = 700;
 
 export interface MapPlace {
   id: PlaceId;
   label: string;
   locked: boolean;
-  /** Kurzer Zusatz unter gesperrten Orten, z. B. „Ab Elo 1000“ */
+  /** Kurzer Zusatz an gesperrten Orten, z. B. „Ab Elo 1000“ */
   lockLabel?: string;
-  /** Gegner, die vor dem Ort stehen: Farbe und, falls vorhanden, freigestellte Figur */
-  opponents: { color: string; sprite?: string }[];
+  /** Gegner an diesem Ort */
+  opponents: { id: string; color: string }[];
 }
 
 export function CityMap({ places, location, onArrive }: {
@@ -103,7 +105,7 @@ export function CityMap({ places, location, onArrive }: {
       const b = path[seg + 1];
       const len = Math.hypot(b.x - a.x, b.y - a.y);
       const t = Math.min(1, ((now - segStart) / 1000) * WALK_SPEED / Math.max(1, len));
-      if (b.x !== a.x) setFacingLeft(b.x < a.x);
+      if (Math.abs(b.x - a.x) > 20) setFacingLeft(b.x < a.x);
       setPos({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
       if (t >= 1) {
         seg++;
@@ -121,74 +123,72 @@ export function CityMap({ places, location, onArrive }: {
     frameRef.current = requestAnimationFrame(step);
   };
 
-  const place = (id: PlaceId) => places.find((p) => p.id === id)!;
-
   return (
-    <svg className="city-map" viewBox="0 0 390 600" role="img" aria-label="Stadtkarte">
+    <svg className="city-map" viewBox={`0 0 ${MAP_W} ${MAP_H}`} role="img" aria-label="Stadtkarte">
       <defs>
-        <pattern id="paper" width="24" height="24" patternUnits="userSpaceOnUse">
-          <rect width="24" height="24" fill="#F4EDDA" />
-          <path d="M24 0 H0 V24" fill="none" stroke="#EADFC4" strokeWidth="0.6" />
-        </pattern>
-        <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="2" stdDeviation="1.6" floodColor="#16323F" floodOpacity="0.18" />
-        </filter>
+        {places.filter((p) => p.locked).map((p) => {
+          const a = PLACE_AREAS[p.id];
+          return (
+            <clipPath key={p.id} id={`clip-${p.id}`}>
+              <rect x={a.x} y={a.y} width={a.w} height={a.h} rx="24" />
+            </clipPath>
+          );
+        })}
       </defs>
 
-      {/* Papier */}
-      <rect width="390" height="600" fill="url(#paper)" />
-      <rect x="6" y="6" width="378" height="588" rx="10" fill="none" stroke="#D9CBA7" strokeWidth="1.5" strokeDasharray="5 4" />
+      <image href={CITY_MAP} x="0" y="0" width={MAP_W} height={MAP_H} />
 
-      {/* Wiesen als ruhige Flächen zwischen den Straßen */}
-      <g fill="#E3EBCF" opacity="0.7">
-        <ellipse cx="300" cy="380" rx="70" ry="42" />
-        <ellipse cx="95" cy="525" rx="72" ry="44" />
-      </g>
-
-      {/* Straßen */}
-      <g strokeLinecap="round" fill="none">
-        <g stroke="#DCCFAF" strokeWidth="17">
-          <Roads />
-        </g>
-        <g stroke="#FFFDF8" strokeWidth="13">
-          <Roads />
-        </g>
-      </g>
-
-      {/* Orte: Bilder im Stil C, unten am Eingang ausgerichtet */}
-      {PLACE_BOXES.map(({ id, box, label }) => (
-        <PlaceGroup key={id} p={place(id)} onTap={goTo} labelAt={label}>
-          <image
-            className="map-image"
-            href={BUILDING_ART[id]}
-            x={box.x}
-            y={box.y}
-            width={box.w}
-            height={box.h}
-            preserveAspectRatio="xMidYMax meet"
-          />
-        </PlaceGroup>
+      {/* Gesperrte Orte: dieselbe Stelle der Karte noch einmal, grau und blass */}
+      {places.filter((p) => p.locked).map((p) => (
+        <image
+          key={p.id}
+          className="map-locked"
+          href={CITY_MAP}
+          x="0"
+          y="0"
+          width={MAP_W}
+          height={MAP_H}
+          clipPath={`url(#clip-${p.id})`}
+        />
       ))}
 
-      {/* Gegner vor den Gebäuden */}
+      {/* Gegner: mit eigener Kartenfigur an ihrem Platz, sonst als Gesicht am Eingang */}
       {places.map((p) =>
         p.opponents.map((o, i) => {
+          const spot = OPPONENT_MAP_SPOTS[o.id];
+          if (spot) {
+            return (
+              <image
+                key={o.id}
+                href={spot.sprite}
+                x={spot.x - spot.w / 2}
+                y={spot.y - spot.h}
+                width={spot.w}
+                height={spot.h}
+                opacity={p.locked ? 0.5 : 1}
+                pointerEvents="none"
+              />
+            );
+          }
           const door = NODES[p.id];
-          const x = door.x + 20 + i * 24;
+          const x = door.x + 70 + i * 62;
           return (
-            <g key={`${p.id}-${i}`} opacity={p.locked ? 0.5 : 1} pointerEvents="none">
-              <ellipse cx={x} cy={door.y + 2} rx="8" ry="2.5" fill="#16323F" opacity="0.18" />
-              {o.sprite
-                ? <image href={o.sprite} x={x - 9} y={door.y - 34} width="18" height="36" preserveAspectRatio="xMidYMax meet" />
-                : <Avatar color={o.color} size={20} x={x - 10} y={door.y - 18} />}
+            <g key={o.id} opacity={p.locked ? 0.5 : 1} pointerEvents="none">
+              <ellipse cx={x} cy={door.y + 6} rx="22" ry="7" fill="#16323F" opacity="0.2" />
+              <Avatar color={o.color} size={52} x={x - 26} y={door.y - 46} />
             </g>
           );
         }),
       )}
 
+      {/* Tippflächen und Schilder */}
+      {places.map((p) => (
+        <PlaceArea key={p.id} p={p} onTap={goTo} />
+      ))}
+
       {/* Eigene Figur */}
-      <g transform={`translate(${pos.x} ${pos.y})`} pointerEvents="none">
-        <ellipse cx="0" cy="1" rx="9" ry="3" fill="#16323F" opacity="0.2" />
+      <g transform={`translate(${pos.x} ${pos.y}) scale(${UI})`} pointerEvents="none">
+        <ellipse cx="0" cy="1" rx="9" ry="3" fill="#16323F" opacity="0.25" />
         <g className={walking ? 'walker walking' : 'walker'} transform={facingLeft ? 'scale(-1 1)' : undefined}>
           <path
             d="M-8 0 h16 l-2 -4 h-3 l-1.5 -9 a5.5 5.5 0 1 0 -3 0 l-1.5 9 h-3 z"
@@ -203,29 +203,8 @@ export function CityMap({ places, location, onArrive }: {
   );
 }
 
-function Roads() {
-  return (
-    <>
-      <path d="M20 150 H370" />
-      <path d="M195 30 V590" />
-      <path d="M14 310 H376" />
-      <path d="M24 440 H366" />
-      <path d="M195 578 H372" />
-      <path d="M298 150 V132" />
-      <path d="M302 310 V298" />
-      <path d="M95 310 V298" />
-      <path d="M92 440 V428" />
-      <path d="M295 578 V566" />
-    </>
-  );
-}
-
-function PlaceGroup({ p, onTap, labelAt, children }: {
-  p: MapPlace;
-  onTap: (id: PlaceId) => void;
-  labelAt: Point;
-  children: ReactNode;
-}) {
+function PlaceArea({ p, onTap }: { p: MapPlace; onTap: (id: PlaceId) => void }) {
+  const a = PLACE_AREAS[p.id];
   const extra = p.lockLabel ? ` · ${p.lockLabel}` : '';
   const width = p.label.length * 6.5 + extra.length * 5.1 + (p.locked ? 26 : 18);
   const left = -width / 2;
@@ -244,8 +223,8 @@ function PlaceGroup({ p, onTap, labelAt, children }: {
         }
       }}
     >
-      <g filter="url(#soft)" className="map-art">{children}</g>
-      <g transform={`translate(${labelAt.x} ${labelAt.y})`}>
+      <rect className="map-hit" x={a.x} y={a.y} width={a.w} height={a.h} rx="24" />
+      <g transform={`translate(${a.label.x} ${a.label.y}) scale(${UI})`}>
         <rect x={left} y="-10" width={width} height="20" rx="10" fill="#FFFDF8" stroke="#16323F" strokeWidth="1.2" />
         {p.locked && (
           <g transform={`translate(${left + 12} 0)`}>
@@ -261,6 +240,3 @@ function PlaceGroup({ p, onTap, labelAt, children }: {
     </g>
   );
 }
-
-
-

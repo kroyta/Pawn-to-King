@@ -417,7 +417,7 @@ export function GameScreen({
         color={opponentColor}
         active={!result && turn === opponentColor}
         clock={hasClock ? clockMs(opponentColor) : null}
-        avatar={persona && <Portrait color={persona.color} sprites={persona.sprites} mood={!result && turn === opponentColor && mood === 'neutral' ? 'thinking' : mood} size={40} />}
+        avatar={persona && <Portrait color={persona.color} sprites={persona.sprites} mood={!result && turn === opponentColor && mood === 'neutral' ? 'thinking' : mood} size={56} />}
         bubble={bubble}
       />
 

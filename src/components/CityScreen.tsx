@@ -1,5 +1,5 @@
 import { canAfford, FREE_GAME_REWARD, recordOf, type SaveData } from '../game/career';
-import { OPPONENT_ART } from '../game/art';
+import { BUILDING_ART, OPPONENT_ART } from '../game/art';
 import { formatMoney } from '../game/format';
 import { knownRange, opponentById, OPPONENTS, type Opponent } from '../game/opponents';
 import { ALL_PLACES, type PlaceId } from '../game/places';
@@ -59,8 +59,7 @@ export function CityScreen({ save, notice, location, openPlace, onLocationChange
       label: t.mapLabels[id] ?? t.places[id],
       locked,
       lockLabel,
-      opponents: OPPONENTS.filter((o) => o.place === id)
-        .map((o) => ({ color: o.avatar.color, sprite: OPPONENT_ART[o.id]?.neutral })),
+      opponents: OPPONENTS.filter((o) => o.place === id).map((o) => ({ id: o.id, color: o.avatar.color })),
     };
   });
 
@@ -140,6 +139,7 @@ function PlaceSheet({ place, locked, save, overallElo, onClose, actions }: {
     <div className="sheet-backdrop" onClick={onClose}>
       <div className="sheet" role="dialog" aria-label={t.places[place]} onClick={(e) => e.stopPropagation()}>
         <div className="sheet-handle" />
+        <img className="sheet-art" src={BUILDING_ART[place]} alt="" draggable={false} />
         <div className="sheet-head">
           <h2>{t.places[place]}</h2>
           <button className="btn ghost small" onClick={onClose}>{t.city.close}</button>
@@ -170,7 +170,7 @@ function HomeContent({ save, actions }: { save: SaveData; actions: CityActions }
     <>
       <EloCard save={save} />
 
-      <div className="daily-banner home">
+      <div className="daily-banner in-home">
         <div>
           <b>{t.daily.title}</b>
           <span>{solved ? t.daily.solved : t.daily.teaser(`+${formatMoney(DAILY_REWARD)}`)}</span>

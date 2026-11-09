@@ -25,9 +25,23 @@ Ziel ist ein eigener, warmer Stil, der nicht nach Governor of Poker aussieht.
 - **Stil C** (Spielzeugstadt von schräg oben) für die Gebäude. Figuren im selben Stil, freigestellt.
 - Erzeugt mit Canva, Probe C als Vorlage für einen einheitlichen Stil. Die Bilder liegen in `src/assets/`
   (WebP, freigestellt). Canva dient nur als Werkzeug, gespeichert wird im Projekt.
-- Fertig: sechs Gebäude (Park, Café Matt, Schachclub, Turnierhalle, Wohnung, Bahnhof) und Heinz mit vier Ausdrücken
-  (neutral, freut sich, besorgt, nachdenklich).
-- Noch offen: die anderen vier Gegner, Deko für die leeren Flächen der Karte, größere Auflösung.
+- **Stadtkarte aus einem Bild** (`src/assets/city/map.webp`, 1064 × 1303): ein zusammenhängendes Stadtbrett mit allen
+  sechs Orten, erzeugt mit den Einzelgebäuden als Vorlage. Tippflächen, Straßenknoten und Schilder liegen als
+  Koordinaten in `src/components/CityMap.tsx`. Gesperrte Orte werden per Ausschnitt grau überlagert.
+- Einzelgebäude (Park, Café Matt, Schachclub, Turnierhalle, Wohnung, Bahnhof) erscheinen oben im Fenster des Ortes.
+- Heinz: vier Ausdrücke (neutral, freut sich, besorgt, nachdenklich) für das Porträt, dazu sitzend am Schachtisch
+  für die Karte (`OPPONENT_MAP_SPOTS` in `src/game/art.ts`).
+- Noch offen: die anderen vier Gegner.
+
+## Canva: generieren ja, speichern nein
+
+Das Canva-Konto wird mitgenutzt. Deshalb wird dort nichts gespeichert:
+
+- Bilder werden mit Canva erzeugt.
+- Zum Herunterladen dient das vorhandene Design „Arbeitsblatt Pawn to King – Spielgrafiken“ als Werkbank:
+  Seiten anlegen, Bild einsetzen, die Vorschau (bis 600 px) herunterladen, danach die Änderung **verwerfen**.
+  Größere Bilder werden in Kacheln zerlegt und wieder zusammengesetzt.
+- Gespeichert wird nur im Projekt (`src/assets/`).
 
 ## Neue Grafiken verarbeiten
 

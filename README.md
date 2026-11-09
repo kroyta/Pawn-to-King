@@ -11,7 +11,10 @@ Schritt 3: eine komplette Partie um Spielgeld gegen einen Gegner.
 Schritt 4: Elo, verdeckte Gegnerstärke mit Enthüllung und fünf Gegner mit Persönlichkeit.
 Schritt 5: klickbare Stadtkarte in Papierkarten-Optik (`src/components/CityMap.tsx`).
 Schritt 6: Tipps, Tagesaufgabe, Einkäufe und das Stadtturnier.
-Schritt 7 (begonnen): Klänge per Web Audio mit Stummschalter; Gebäude und Heinz im neuen Grafikstil, siehe [`docs/grafik.md`](docs/grafik.md).
+Schritt 7 (begonnen): Klänge per Web Audio mit Stummschalter; Stadtkarte und Heinz im neuen Grafikstil, siehe [`docs/grafik.md`](docs/grafik.md).
+
+**Debug-Menü:** fünfmal schnell auf „Pawn to King“ oben tippen oder `?debug` an die Adresse hängen.
+Dann gibt es einen Käfer-Knopf mit Geld, Elo, Tagesaufgabe, Stadtfinale und Zurücksetzen.
 
 **Tipps, Tagesaufgabe, Einkäufe, Turnier (Startwerte)**
 
