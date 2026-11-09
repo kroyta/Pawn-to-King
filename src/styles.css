@@ -342,3 +342,13 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .tour-player { display: inline-flex; align-items: center; gap: 5px; font-size: 14px; font-weight: 600; }
 .tour-status { margin: 12px 0 0; padding: 10px 12px; border-radius: 12px; background: #FDF4DF; font-weight: 700; }
 .tour-status.win { background: #E3F1F3; color: var(--petrol); }
+
+/* Kopfzeile: Ton und Kontostand */
+.header-right { display: flex; align-items: center; gap: 8px; }
+.sound-btn {
+  width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid var(--line); background: #fff;
+  display: grid; place-items: center; color: var(--muted);
+}
+.balance.bump { animation: bump 0.45s ease-out; }
+@keyframes bump { 0% { transform: scale(1); } 35% { transform: scale(1.12); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .balance.bump { animation: none; } }

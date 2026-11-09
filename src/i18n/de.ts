@@ -3,6 +3,7 @@ import type { ReactionLines } from '../components/GameScreen';
 // Alle sichtbaren Texte liegen hier, getrennt vom Code.
 export const de = {
   appTitle: 'Pawn to King',
+  sound: { on: 'Ton an', off: 'Ton aus' },
   setup: {
     subtitle: 'Eine Partie gegen den Computer',
     timeControl: 'Bedenkzeit',

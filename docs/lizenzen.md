@@ -21,6 +21,16 @@ eingetippt haben, kein fremder Code. Wir prüfen trotzdem vor dem Start, ob ein 
 
 - [ ] Herkunft der Stellungstabellen prüfen lassen oder durch eigene Werte ersetzen
 
+## Klänge
+
+Alle Klänge werden im Browser per Web Audio erzeugt (`src/game/sound.ts`). Es gibt keine fremden Sounddateien.
+
+## KI-Bilder
+
+Stilproben wurden mit dem Bildgenerator von Canva erzeugt (siehe `grafik.md`).
+
+- [ ] Nutzungsbedingungen von Canva für KI-Bilder in einem Spiel prüfen lassen
+
 ## Figurensatz
 
 Der Prototyp nutzt vorerst die Figuren, die in react-chessboard mitgeliefert werden. Sie sehen aus wie der

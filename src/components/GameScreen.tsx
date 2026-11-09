@@ -8,6 +8,7 @@ import { Avatar, type Mood } from './Avatar';
 import { boardResult, timeoutResult, type GameResult } from '../game/result';
 import { formatClock, type TimeControl } from '../game/timeControls';
 import { formatMoney } from '../game/format';
+import { play } from '../game/sound';
 import { t } from '../i18n/de';
 
 const COLORS = {
@@ -188,6 +189,7 @@ export function GameScreen({
     setHintSquare(null);
     setArrow(null);
     if (mover !== opponentColor) setTipText(null);
+    play(g.inCheck() ? 'check' : move.captured ? 'capture' : 'move');
     const res = boardResult(g);
     if (res) {
       finish(res);
@@ -206,6 +208,7 @@ export function GameScreen({
     if (result && !reportedRef.current) {
       reportedRef.current = true;
       onFinish?.(result, { tipsUsed });
+      setTimeout(() => play(result.winner === null ? 'draw' : result.winner === playerColor ? 'win' : 'loss'), 250);
       say(result.winner === null ? 'draw' : result.winner === playerColor ? 'botLoses' : 'botWins');
     }
   }, [result, onFinish, say, playerColor, tipsUsed]);
@@ -270,6 +273,7 @@ export function GameScreen({
         const warning = warningFor(analysis, from + to + (promo ?? ''));
         if (warning) {
           setTipText(null);
+          play('wrong');
           setWarnPending({ from, to, promo, text: warning });
         } else {
           setTipText(t.tips.safe);
@@ -305,6 +309,7 @@ export function GameScreen({
       return;
     }
     setTipsUsed((n) => n + 1);
+    play('tip');
     const g = gameRef.current;
     if (kind === 'warning') {
       setWarningArmed(true);

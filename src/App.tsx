@@ -16,6 +16,7 @@ import { DAILY_REWARD, puzzleOfDay, todayKey } from './game/puzzles';
 import { formatOf, overallRating } from './game/rating';
 import type { GameResult } from './game/result';
 import { themeById } from './game/shop';
+import { isMuted, play, setMuted } from './game/sound';
 import { loadSave, storeSave } from './game/storage';
 import type { TimeControl } from './game/timeControls';
 import { TIP_KINDS, tipPrice, type TipKind } from './game/tips';
@@ -77,6 +78,7 @@ export default function App() {
   useEffect(() => () => engine?.dispose(), [engine]);
 
   const boardColors = themeById(save.boardTheme);
+  const [muted, setMutedState] = useState(isMuted);
 
   const beginMatch = (base: SaveData, opponent: Opponent, kind: MatchKind, timeControl: TimeControl) => {
     const elo = dayElo(opponent);
@@ -163,6 +165,9 @@ export default function App() {
     }
     setSave(next);
     setSettlement({ ...res, save: next });
+    // Münzklimpern, wenn es mehr gibt als den zurückgezahlten Einsatz
+    const stakeBack = match.kind === 'money' ? match.opponent.stake : 0;
+    if (next.balance - save.balance > stakeBack) setTimeout(() => play('coin'), 900);
   }, [match, save]);
 
   // Tipps: in Geldpartien gegen Spielgeld, in der Testpartie gratis, im Turnier keine
@@ -217,10 +222,20 @@ export default function App() {
     <main className="app">
       <header className="app-header">
         <h1>{t.appTitle}</h1>
-        <span className="balance" title={t.money.balance}>
-          <span className="coin" aria-hidden />
-          {formatMoney(save.balance)}
-        </span>
+        <div className="header-right">
+          <button
+            className="sound-btn"
+            aria-label={muted ? t.sound.on : t.sound.off}
+            title={muted ? t.sound.on : t.sound.off}
+            onClick={() => { setMuted(!muted); setMutedState(!muted); }}
+          >
+            <SpeakerIcon muted={muted} />
+          </button>
+          <span key={save.balance} className="balance bump" title={t.money.balance}>
+            <span className="coin" aria-hidden />
+            {formatMoney(save.balance)}
+          </span>
+        </div>
       </header>
 
       {match ? (
@@ -309,5 +324,14 @@ function MatchSummary({ settlement, free, opponentName, note }: {
         {tipsUsed > 0 && rating.delta > 0 && <p className="money-note">{t.tips.eloReduced}</p>}
       </div>
     </div>
+  );
+}
+
+function SpeakerIcon({ muted }: { muted: boolean }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M4 9 H8 L13 5 V19 L8 15 H4 Z" fill="currentColor" />
+      {muted ? <path d="M17 9 L22 14 M22 9 L17 14" /> : <path d="M16.5 8.5 a5 5 0 0 1 0 7 M19 6 a8.5 8.5 0 0 1 0 12" />}
+    </svg>
   );
 }

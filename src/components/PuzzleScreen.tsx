@@ -3,6 +3,7 @@ import { Chess, type Square } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 import { formatMoney } from '../game/format';
 import { DAILY_REWARD } from '../game/puzzles';
+import { play } from '../game/sound';
 import { t } from '../i18n/de';
 
 /** Tagesaufgabe: Matt in 1. Jede Lösung, die mattsetzt, zählt. */
@@ -30,6 +31,8 @@ export function PuzzleScreen({ fen, alreadySolved, colors, onSolved, onBack }: {
     }
     setSelected(null);
     if (g.isCheckmate()) {
+      play('check');
+      if (!alreadySolved) setTimeout(() => play('coin'), 300);
       setPosition(g.fen());
       setDone(true);
       setMessage({ text: alreadySolved ? t.daily.rightAgain : t.daily.right(formatMoney(DAILY_REWARD)), ok: true });
@@ -37,6 +40,7 @@ export function PuzzleScreen({ fen, alreadySolved, colors, onSolved, onBack }: {
       return true;
     }
     // Falscher Zug: kurz zeigen, dann zurück
+    play('wrong');
     setPosition(g.fen());
     setMessage({ text: t.daily.wrong, ok: false });
     setTimeout(() => setPosition(fen), 700);
