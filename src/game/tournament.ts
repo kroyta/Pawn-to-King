@@ -1,5 +1,4 @@
-import { expectedScore } from './rating';
-import { dayElo, opponentById } from './opponents';
+import { RIVAL_ID } from './rival';
 import { TIME_CONTROLS, type TimeControl } from './timeControls';
 import type { Outcome } from './career';
 
@@ -7,7 +6,7 @@ import type { Outcome } from './career';
 export const CITY_TOURNAMENT = {
   entryFee: 150,
   prize: 1000,
-  /** Die drei anderen Teilnehmer */
+  /** Mögliche Halbfinal-Gegner; im anderen Halbfinale spielt immer der Rivale */
   field: ['jojo', 'marlene', 'kevin'],
   /** Bedenkzeit je Runde: Halbfinale, Finale. Bei Remis entscheidet ein Blitz-Stechen. */
   roundTime: ['10+0', '15+10'],
@@ -30,17 +29,13 @@ export function timeControlFor(state: TournamentState): TimeControl {
   return tc(state.tiebreak ? CITY_TOURNAMENT.tiebreakTime : CITY_TOURNAMENT.roundTime[state.round]);
 }
 
-/** Auslosung: zufälliger Halbfinal-Gegner, die anderen beiden spielen das zweite Halbfinale. */
+/** Auslosung: Dein Halbfinal-Gegner wird gelost, im anderen Halbfinale spielt der Rivale. */
 export function drawTournament(rng: () => number = Math.random): TournamentState {
   const field = [...CITY_TOURNAMENT.field].sort(() => rng() - 0.5);
-  return { round: 0, opponentId: field[0], otherSemi: [field[1], field[2]], tiebreak: false };
+  return { round: 0, opponentId: field[0], otherSemi: [field[1], RIVAL_ID], tiebreak: false };
 }
 
-/** Das andere Halbfinale wird nach Spielstärke ausgewürfelt. */
-export function simulateOtherSemi(state: TournamentState, rng: () => number = Math.random): string {
-  const [a, b] = state.otherSemi.map((id) => opponentById(id)!);
-  return rng() < expectedScore(dayElo(a), dayElo(b)) ? a.id : b.id;
-}
+
 
 export type TournamentStep =
   | { kind: 'tiebreak'; state: TournamentState }
@@ -49,10 +44,10 @@ export type TournamentStep =
   | { kind: 'lost' };
 
 /** Wie es nach einer Turnierpartie weitergeht. */
-export function advance(state: TournamentState, outcome: Outcome, rng: () => number = Math.random): TournamentStep {
+export function advance(state: TournamentState, outcome: Outcome): TournamentStep {
   if (outcome === 'draw') return { kind: 'tiebreak', state: { ...state, tiebreak: true } };
   if (outcome === 'loss') return { kind: 'lost' };
   if (state.round === 1) return { kind: 'won' };
-  const finalist = simulateOtherSemi(state, rng);
-  return { kind: 'final', state: { ...state, round: 1, opponentId: finalist, tiebreak: false } };
+  // Der Rivale gewinnt sein Halbfinale natürlich und wartet im Finale
+  return { kind: 'final', state: { ...state, round: 1, opponentId: RIVAL_ID, tiebreak: false } };
 }

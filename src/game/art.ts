@@ -25,6 +25,11 @@ import kevinMap from '../assets/opponents/kevin-map.webp';
 import kevinNeutral from '../assets/opponents/kevin-neutral.webp';
 import kevinThinking from '../assets/opponents/kevin-thinking.webp';
 import kevinWorried from '../assets/opponents/kevin-worried.webp';
+import leoHappy from '../assets/opponents/leo-happy.webp';
+import leoMap from '../assets/opponents/leo-map.webp';
+import leoNeutral from '../assets/opponents/leo-neutral.webp';
+import leoThinking from '../assets/opponents/leo-thinking.webp';
+import leoWorried from '../assets/opponents/leo-worried.webp';
 import marleneHappy from '../assets/opponents/marlene-happy.webp';
 import marleneMap from '../assets/opponents/marlene-map.webp';
 import marleneNeutral from '../assets/opponents/marlene-neutral.webp';
@@ -46,6 +51,7 @@ export const OPPONENT_ART: Record<string, Record<Mood, string>> = {
   jojo: { neutral: jojoNeutral, happy: jojoHappy, worried: jojoWorried, thinking: jojoThinking },
   marlene: { neutral: marleneNeutral, happy: marleneHappy, worried: marleneWorried, thinking: marleneThinking },
   kevin: { neutral: kevinNeutral, happy: kevinHappy, worried: kevinWorried, thinking: kevinThinking },
+  leo: { neutral: leoNeutral, happy: leoHappy, worried: leoWorried, thinking: leoThinking },
   albrecht: { neutral: albrechtNeutral, happy: albrechtHappy, worried: albrechtWorried, thinking: albrechtThinking },
 };
 
@@ -71,4 +77,16 @@ export const PLAYER_LOOKS: { id: string; sprite: string }[] = [
 
 export function playerSprite(look: string | undefined): string | undefined {
   return PLAYER_LOOKS.find((l) => l.id === look)?.sprite;
+}
+
+/** Wo der Rivale an einem Ort auf der Karte steht (Kartenpixel, unten Mitte) */
+const RIVAL_SPOTS: Partial<Record<PlaceId, { x: number; y: number }>> = {
+  park: { x: 420, y: 385 },
+  cafe: { x: 760, y: 408 },
+  club: { x: 870, y: 795 },
+};
+
+export function rivalSpot(place: PlaceId) {
+  const p = RIVAL_SPOTS[place];
+  return p ? { sprite: leoMap, x: p.x, y: p.y, w: 46, h: 125 } : undefined;
 }

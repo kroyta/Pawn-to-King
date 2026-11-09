@@ -13,6 +13,10 @@ Schritt 5: klickbare Stadtkarte in Papierkarten-Optik (`src/components/CityMap.t
 Schritt 6: Tipps, Tagesaufgabe, Einkäufe und das Stadtturnier.
 Schritt 7 (begonnen): Klänge per Web Audio mit Stummschalter; Stadtkarte und Heinz im neuen Grafikstil, siehe [`docs/grafik.md`](docs/grafik.md).
 
+**Rivale Leo Läufer** (`src/game/rival.ts`, Startwerte): taucht nach der ersten Partie und danach alle 3 Partien
+an Park, Café oder Club auf. Er ist etwa 75 Elo stärker als du, sein Einsatz liegt bei 20 % deines Kontostands
+(30–1.000 €). Er begrüßt dich je nach eurer Bilanz und steht im Stadtturnier immer im Finale.
+
 **Eigene Figur:** Beim ersten Start Name und Aussehen wählen, änderbar in der Wohnung.
 
 **Debug-Menü:** fünfmal schnell auf „Pawn to King“ oben tippen oder `?debug` an die Adresse hängen.

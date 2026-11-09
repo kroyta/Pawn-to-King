@@ -3,6 +3,7 @@ import type { GameResult } from './result';
 import { applyResult, emptyRatings, type RatingChange, type RatingFormat, type Ratings } from './rating';
 import { NO_HELP_BONUS_SHARE, TIP_ELO_FACTOR } from './tips';
 import type { TournamentState } from './tournament';
+import type { RivalState } from './rival';
 
 /** Spielstand des Spielers. Spielgeld ist rein virtuell. */
 export interface OpponentRecord {
@@ -45,6 +46,7 @@ export interface SaveData {
   cityFinalWon: boolean;
   /** Eigene Figur; null, solange sie noch nicht erstellt wurde */
   player: { name: string; look: string } | null;
+  rival: RivalState;
 }
 
 export const START_BALANCE = 100;
@@ -66,6 +68,7 @@ export function newSave(): SaveData {
     tournament: null,
     cityFinalWon: false,
     player: null,
+    rival: { place: null, matchesSince: 0 },
   };
 }
 

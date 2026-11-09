@@ -10,9 +10,10 @@ import {
   type SaveData, type Settlement,
 } from './game/career';
 import { OPPONENT_ART } from './game/art';
+import { afterMatch, anyOpponent, RIVAL_ID, rivalMood } from './game/rival';
 import { CreatePlayer } from './components/CreatePlayer';
 import { formatMoney } from './game/format';
-import { dayElo, opponentById, type Opponent } from './game/opponents';
+import { dayElo, type Opponent } from './game/opponents';
 import { START_PLACE, type PlaceId } from './game/places';
 import { DAILY_REWARD, puzzleOfDay, todayKey } from './game/puzzles';
 import { formatOf, overallRating } from './game/rating';
@@ -102,6 +103,12 @@ export default function App() {
   const beginMatch = (base: SaveData, opponent: Opponent, kind: MatchKind, timeControl: TimeControl) => {
     const elo = dayElo(opponent);
     const text = t.opponents[opponent.id];
+    // Der Rivale begrüßt dich je nach eurer Bilanz, im Finale mit einem eigenen Spruch
+    let lines = text.lines;
+    if (opponent.id === RIVAL_ID) {
+      const start = kind === 'tournament' ? [t.rival.finalLine] : t.rival.greet[rivalMood(base)];
+      lines = { ...lines, start };
+    }
     // Einsatz wird beim Start einbehalten
     setSave(startMatch(base, {
       opponentId: opponent.id,
@@ -121,13 +128,13 @@ export default function App() {
       playerColor: randomColor(),
       engine: new HumanEngine(elo, text.name, opponent.style),
       opponent,
-      persona: { color: opponent.avatar.color, sprites: OPPONENT_ART[opponent.id], lines: text.lines },
+      persona: { color: opponent.avatar.color, sprites: OPPONENT_ART[opponent.id], lines },
     });
   };
 
   const playTournamentRound = (base: SaveData) => {
     if (!base.tournament) return;
-    const opponent = opponentById(base.tournament.opponentId)!;
+    const opponent = anyOpponent(base.tournament.opponentId, base);
     beginMatch(base, opponent, 'tournament', timeControlFor(base.tournament));
   };
 
@@ -183,6 +190,8 @@ export default function App() {
         setTournamentNote({ kind: 'lost', text: t.tournament.lost });
       }
     }
+    // Rivale: Begegnung abschließen oder sein nächstes Auftauchen vorbereiten
+    next = afterMatch(next, match.opponent.id);
     setSave(next);
     setSettlement({ ...res, save: next });
     // Münzklimpern, wenn es mehr gibt als den zurückgezahlten Einsatz
@@ -211,7 +220,7 @@ export default function App() {
 
   const o = match?.opponent ?? null;
   const resultExtra = settlement && o
-    ? <MatchSummary settlement={settlement} free={match!.kind === 'free'} opponentName={t.opponents[o.id].name} note={tournamentNote} />
+    ? <MatchSummary settlement={settlement} free={match!.kind === 'free'} opponentName={t.opponents[o.id].name} note={tournamentNote} rivalRecord={o.id === RIVAL_ID ? settlement.save.opponents[RIVAL_ID] : undefined} />
     : null;
 
   let rematchLabel: string | null = t.actions.rematch;
@@ -221,7 +230,9 @@ export default function App() {
     rematchLabel = continues ? t.tournament.play : null;
     onRematch = () => playTournamentRound(save);
   } else if (o) {
-    rematchLabel = match!.kind === 'free' || !canAfford(save, o.stake) ? null : t.money.rematchFor(formatMoney(o.stake));
+    // Der Rivale zieht nach der Partie weiter, eine direkte Revanche gibt es nicht
+    rematchLabel = match!.kind === 'free' || o.id === RIVAL_ID || !canAfford(save, o.stake)
+      ? null : t.money.rematchFor(formatMoney(o.stake));
     onRematch = () => beginMatch(save, o, 'money', o.timeControl);
   }
 
@@ -327,11 +338,12 @@ export default function App() {
   );
 }
 
-function MatchSummary({ settlement, free, opponentName, note }: {
+function MatchSummary({ settlement, free, opponentName, note, rivalRecord }: {
   settlement: Settlement;
   free: boolean;
   opponentName: string;
   note: TournamentNote | null;
+  rivalRecord?: { wins: number; draws: number; losses: number };
 }) {
   const { moneyDelta, outcome, save, rating, opponentElo, bonus, tipsUsed, tournament } = settlement;
   let money: string;
@@ -363,6 +375,7 @@ function MatchSummary({ settlement, free, opponentName, note }: {
           {t.rating.change(t.rating.formats[rating.format], rating.before, rating.after, rating.delta)}
         </p>
         {tipsUsed > 0 && rating.delta > 0 && <p className="money-note">{t.tips.eloReduced}</p>}
+        {rivalRecord && <p className="rival-badge">{t.rival.record(rivalRecord.wins, rivalRecord.draws, rivalRecord.losses)}</p>}
       </div>
     </div>
   );

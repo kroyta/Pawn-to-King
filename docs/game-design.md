@@ -125,7 +125,7 @@ Tipps lassen sich mit Spielgeld kaufen und machen auch Gegner über dem eigenen 
 
 **Rivale**
 
-Der Spieler erstellt sich selbst mit Name und Aussehen. Ein witziger Rivale taucht in jeder Stadt auf, merkt sich frühere Partien und gibt der Reise ein klares Ziel.
+Der Spieler erstellt sich selbst mit Name und Aussehen. Ein witziger Rivale taucht in jeder Stadt auf, merkt sich frühere Partien und gibt der Reise ein klares Ziel. *(Umgesetzt in der ersten Stadt: Leo Läufer, wächst mit dem Spieler und wartet im Stadtfinale.)*
 
 ## Welt und Design
 

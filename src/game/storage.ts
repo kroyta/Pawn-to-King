@@ -5,7 +5,7 @@ const KEY = 'pawn-to-king.save.v1';
 
 /** Älteren Spielstand auf die aktuelle Version bringen. */
 function migrate(data: any): SaveData | null {
-  if (data?.version === 3) return { player: null, ...data } as SaveData;
+  if (data?.version === 3) return { player: null, rival: { place: null, matchesSince: 0 }, ...data } as SaveData;
   if (data?.version === 2) {
     // Version 3 bringt Tagesaufgabe, Einkäufe, Dossiers und Turnier
     const fresh = newSave();
@@ -19,6 +19,7 @@ function migrate(data: any): SaveData | null {
       tournament: fresh.tournament,
       cityFinalWon: fresh.cityFinalWon,
       player: null,
+      rival: { place: null, matchesSince: 0 },
     } as SaveData;
   }
   if (data?.version === 1 && typeof data.balance === 'number') {

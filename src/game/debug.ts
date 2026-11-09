@@ -41,4 +41,5 @@ export function addElo(s: SaveData, delta: number): SaveData {
 export const resetDaily = (s: SaveData): SaveData => ({ ...s, dailySolved: null });
 export const toggleCityFinal = (s: SaveData): SaveData => ({ ...s, cityFinalWon: !s.cityFinalWon });
 export const clearTournament = (s: SaveData): SaveData => ({ ...s, tournament: null });
+export { placeRival } from './rival';
 export const freshSave = (): SaveData => newSave();

@@ -1,5 +1,5 @@
 import type { SaveData } from '../game/career';
-import { addElo, addMoney, clearTournament, freshSave, resetDaily, toggleCityFinal } from '../game/debug';
+import { addElo, addMoney, clearTournament, freshSave, placeRival, resetDaily, toggleCityFinal } from '../game/debug';
 import { formatMoney } from '../game/format';
 import { overallRating } from '../game/rating';
 import { t } from '../i18n/de';
@@ -45,6 +45,7 @@ export function DebugPanel({ save, onChange, onClose, onDisable }: {
           {btn(d.resetDaily, resetDaily)}
           {btn(save.cityFinalWon ? d.finalOff : d.finalOn, toggleCityFinal)}
           {btn(d.clearTournament, clearTournament)}
+          {btn(d.rival, (s) => placeRival(s))}
         </div>
 
         <h3 className="sheet-sub">{d.danger}</h3>

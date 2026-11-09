@@ -415,3 +415,16 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .look img { max-width: 100%; max-height: 100%; object-fit: contain; }
 .look.selected { border-color: var(--text); background: #F3F0E4; }
 .create .btn.big { margin-top: 24px; }
+
+/* Rivale */
+.rival-banner {
+  display: flex; align-items: center; gap: 10px; margin: 0 4px 10px; padding: 6px 14px 6px 8px;
+  border: 2px solid var(--red); border-radius: 16px; background: #FBEAE5; text-align: left;
+  font-weight: 700; color: var(--red);
+}
+.rival-banner img { width: 34px; height: 46px; object-fit: contain; object-position: top; }
+.opponent-card.rival { border-color: var(--red); box-shadow: 0 0 0 3px #FBEAE5; }
+.rival-badge { margin: 10px 0 0; font-size: 13px; font-weight: 700; color: var(--red); }
+.rival-alert { animation: alert 1s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
+@keyframes alert { from { opacity: 1; } to { opacity: 0.55; } }
+@media (prefers-reduced-motion: reduce) { .rival-alert { animation: none; } }

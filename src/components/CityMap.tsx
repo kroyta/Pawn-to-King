@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { CITY_MAP, OPPONENT_MAP_SPOTS } from '../game/art';
+import { CITY_MAP, OPPONENT_MAP_SPOTS, rivalSpot } from '../game/art';
+import { RIVAL_ID } from '../game/rival';
 import type { PlaceId } from '../game/places';
 import { Avatar } from './Avatar';
 
@@ -157,11 +158,11 @@ export function CityMap({ places, location, onArrive, playerSprite }: {
       {/* Gegner: mit eigener Kartenfigur an ihrem Platz, sonst als Gesicht am Eingang */}
       {places.map((p) =>
         p.opponents.map((o, i) => {
-          const spot = OPPONENT_MAP_SPOTS[o.id];
+          const spot = o.id === RIVAL_ID ? rivalSpot(p.id) : OPPONENT_MAP_SPOTS[o.id];
           if (spot) {
             return (
+              <g key={o.id} pointerEvents="none">
               <image
-                key={o.id}
                 href={spot.sprite}
                 x={spot.x - spot.w / 2}
                 y={spot.y - spot.h}
@@ -170,6 +171,13 @@ export function CityMap({ places, location, onArrive, playerSprite }: {
                 opacity={p.locked ? 0.5 : 1}
                 pointerEvents="none"
               />
+              {o.id === RIVAL_ID && (
+                <g className="rival-alert" transform={`translate(${spot.x} ${spot.y - spot.h - 26})`}>
+                  <circle r="20" fill="#BE4128" stroke="#FFFDF8" strokeWidth="4" />
+                  <text textAnchor="middle" dy="9" fontSize="26" fontWeight="800" fill="#FFFDF8">!</text>
+                </g>
+              )}
+              </g>
             );
           }
           const door = NODES[p.id];

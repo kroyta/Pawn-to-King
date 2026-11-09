@@ -1,7 +1,8 @@
 import { canAfford, FREE_GAME_REWARD, recordOf, type SaveData } from '../game/career';
 import { BUILDING_ART, OPPONENT_ART, playerSprite } from '../game/art';
 import { formatMoney } from '../game/format';
-import { knownRange, opponentById, OPPONENTS, type Opponent } from '../game/opponents';
+import { knownRange, OPPONENTS, type Opponent } from '../game/opponents';
+import { anyOpponent, RIVAL_ID, rivalOpponent } from '../game/rival';
 import { ALL_PLACES, type PlaceId } from '../game/places';
 import { DAILY_REWARD, todayKey } from '../game/puzzles';
 import { overallRating } from '../game/rating';
@@ -44,7 +45,10 @@ export function CityScreen({ save, notice, location, openPlace, onLocationChange
       id,
       label: t.mapLabels[id] ?? t.places[id],
       locked,
-      opponents: OPPONENTS.filter((o) => o.place === id).map((o) => ({ id: o.id, color: o.avatar.color })),
+      opponents: [
+        ...(save.rival.place === id ? [{ id: RIVAL_ID, color: '#5E8A4E' }] : []),
+        ...OPPONENTS.filter((o) => o.place === id).map((o) => ({ id: o.id, color: o.avatar.color })),
+      ],
     };
   });
 
@@ -58,6 +62,12 @@ export function CityScreen({ save, notice, location, openPlace, onLocationChange
             {t.money.freeGame(formatMoney(FREE_GAME_REWARD))}
           </button>
         </div>
+      )}
+      {save.rival.place && (
+        <button className="rival-banner" onClick={() => onOpenPlace(save.rival.place)}>
+          <img src={OPPONENT_ART[RIVAL_ID].neutral} alt="" />
+          <span>{t.rival.banner(t.opponents[RIVAL_ID].name, t.rival.where[save.rival.place])}</span>
+        </button>
       )}
       {dailyOpen && <DailyBanner onSolve={actions.onPuzzle} />}
 
@@ -111,7 +121,10 @@ function PlaceSheet({ place, save, onClose, actions }: {
   onClose: () => void;
   actions: CityActions;
 }) {
-  const opponents = OPPONENTS.filter((o) => o.place === place);
+  const opponents = [
+    ...(save.rival.place === place ? [rivalOpponent(save)] : []),
+    ...OPPONENTS.filter((o) => o.place === place),
+  ];
   const furnitureCount = FURNITURE.filter((f) => save.owned.includes(f.id)).length;
   const homeLevel = Math.min(t.shop.homeDescriptions.length - 1, Math.ceil(furnitureCount / 2));
   let description = t.city.descriptions[place];
@@ -227,8 +240,8 @@ function TournamentCard({ save, actions }: { save: SaveData; actions: CityAction
       <p className="reputation">{t.tournament.rules}</p>
       <div className="tour-field">
         <span className="strength">{t.tournament.field}</span>
-        {T.field.map((id) => {
-          const o = opponentById(id)!;
+        {[...T.field, RIVAL_ID].map((id) => {
+          const o = anyOpponent(id, save);
           return <span key={id} className="tour-player"><Portrait color={o.avatar.color} sprites={OPPONENT_ART[id]} size={22} />{t.opponents[id].name}</span>;
         })}
       </div>
@@ -243,7 +256,7 @@ function TournamentCard({ save, actions }: { save: SaveData; actions: CityAction
               t.opponents[state.opponentId].name,
             )}
           </p>
-          <DossierRow opponent={opponentById(state.opponentId)!} save={save} actions={actions} stake={T.entryFee} />
+          <DossierRow opponent={anyOpponent(state.opponentId, save)} save={save} actions={actions} stake={T.entryFee} />
           <button className="btn primary big" onClick={actions.onPlayTournament}>{t.tournament.play}</button>
         </>
       ) : (
@@ -303,7 +316,7 @@ function OpponentCard({ opponent: o, save, actions }: {
   const affordable = canAfford(save, o.stake);
 
   return (
-    <article className="opponent-card">
+    <article className={`opponent-card${o.id === RIVAL_ID ? ' rival' : ''}`}>
       <div className="opponent-head">
         <Portrait color={o.avatar.color} sprites={OPPONENT_ART[o.id]} size={52} />
         <div className="opponent-meta">
@@ -312,6 +325,11 @@ function OpponentCard({ opponent: o, save, actions }: {
         </div>
         <span className="stake-amount">{formatMoney(o.stake)}</span>
       </div>
+      {o.id === RIVAL_ID && (
+        <p className="rival-badge">
+          {t.rival.badge} · {rec.games > 0 ? t.rival.record(rec.wins, rec.draws, rec.losses) : t.rival.noRecord}
+        </p>
+      )}
       <p className="reputation">{text.reputation}</p>
       <p className="strength">
         {range ? t.rating.strengthRange(range[0], range[1]) : t.rating.strengthUnknown}
