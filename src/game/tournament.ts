@@ -7,8 +7,6 @@ import type { Outcome } from './career';
 export const CITY_TOURNAMENT = {
   entryFee: 150,
   prize: 1000,
-  /** Lässt sich nicht kaufen */
-  minElo: 900,
   /** Die drei anderen Teilnehmer */
   field: ['jojo', 'marlene', 'kevin'],
   /** Bedenkzeit je Runde: Halbfinale, Finale. Bei Remis entscheidet ein Blitz-Stechen. */

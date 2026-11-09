@@ -118,7 +118,6 @@ export const de = {
     intro: 'Vier Spieler, K.-o.-System. Wer gewinnt, ist Stadtsieger und darf weiterreisen.',
     entryFee: 'Startgeld',
     prize: 'Preisgeld',
-    minElo: (elo: number) => `Ab Elo ${elo}`,
     rules: 'Halbfinale 10 Min., Finale 15+10. Bei Remis entscheidet ein Blitz-Stechen (3 Min.). In den Partien gibt es keine Tipps.',
     field: 'Teilnehmer',
     enter: (amount: string) => `Anmelden · ${amount}`,
@@ -182,7 +181,7 @@ export const de = {
     descriptions: {
       park: 'Schach unter Kastanien. Kleine Einsätze, gemütliche Gegner.',
       cafe: 'Starker Kaffee, stärkere Gegner.',
-      club: 'Hier spielt nur, wer eine ordentliche Elo hat.',
+      club: 'Gediegene Atmosphäre, hohe Einsätze, starke Gegner.',
       hall: 'Hier steigt das große Stadtturnier.',
       home: 'Deine kleine Wohnung. Noch ziemlich leer.',
       station: 'Von hier geht es in die nächste Stadt.',
@@ -201,7 +200,6 @@ export const de = {
     reveal: (name: string, elo: number) => `${name} spielte heute mit Elo ${elo}`,
     strengthUnknown: 'Stärke: unbekannt',
     strengthRange: (lo: number, hi: number) => `Stärke: etwa ${lo}–${hi}`,
-    locked: (elo: number) => `Ab Elo ${elo}`,
     record: (w: number, d: number, l: number) => `Bilanz: ${w} S · ${d} R · ${l} N`,
   },
   opponents: {

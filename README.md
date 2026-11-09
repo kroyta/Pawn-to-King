@@ -25,7 +25,7 @@ Dann gibt es einen Käfer-Knopf mit Geld, Elo, Tagesaufgabe, Stadtfinale und Zur
 - Tagesaufgabe: jeden Tag ein Matt in 1 (selbst erstellt, `src/game/puzzles.ts`), Belohnung 15 €.
 - Wohnung: Einrichtung kaufen (verändert die Beschreibung) und Brett-Stile (Walnuss, Schiefer).
 - Dossier über einen Gegner: 25 % des Einsatzes, zeigt seinen Spielstil und eine engere Stärke-Spanne.
-- Stadtturnier in der Turnierhalle: ab Elo 900, Startgeld 150 €, Preisgeld 1.000 €, Halbfinale und Finale im K.-o.-System,
+- Stadtturnier in der Turnierhalle: für alle offen, Startgeld 150 €, Preisgeld 1.000 €, Halbfinale und Finale im K.-o.-System,
   Blitz-Stechen bei Remis, keine Tipps. Der Sieg öffnet den Bahnhof.
 
 **Stadtkarte**
@@ -34,7 +34,7 @@ Dann gibt es einen Käfer-Knopf mit Geld, Elo, Tagesaufgabe, Stadtfinale und Zur
   Platzhalter ohne echte Stadt, bis feststeht, welche Stadt zuerst kommt.
 - Tippe auf einen Ort, die eigene Figur läuft über die Straßen dorthin, dann öffnet sich der Ort von unten.
 - Gegner stehen als kleine Gesichter vor ihren Gebäuden. Gesperrte Orte sind grau mit Schloss und Grund
-  (Club ab Elo 1000, Turnierhalle „Bald“, Bahnhof nach dem Stadtfinale).
+  (nur noch der Bahnhof, bis das Stadtfinale gewonnen ist).
 - Die Wohnung zeigt Elo, Bilanz und die freie Testpartie.
 
 **Elo und Gegner (Startwerte)**
@@ -45,7 +45,7 @@ Dann gibt es einen Käfer-Knopf mit Geld, Elo, Tagesaufgabe, Stadtfinale und Zur
   die mit jeder Partie enger wird, aber nie die genaue Zahl.
 - Tagesform: Jeder Gegner schwankt von Tag zu Tag um bis zu ±60.
 - Fünf erfundene Gegner in Park, Café Matt und Schachclub Weißer Turm, jeder mit eigener Bedenkzeit, Einsatz, Spielstil
-  und Sprüchen. Der Club verlangt Elo 1000.
+  und Sprüchen. Alle Orte sind für alle offen, der Zugang hängt nur am Geld.
 - Die Uhr des Gegners läuft bei 10 Min. dreifach und bei 15+10 fünffach beschleunigt: Er wartet kürzer, verliert aber die volle Denkzeit.
 
 **Geld-Regeln (Startwerte)**

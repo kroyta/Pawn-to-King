@@ -43,7 +43,7 @@ Die eigene Elo ist sichtbar, die genaue Elo des Gegners bleibt bis nach der Part
 
 **Bedenkzeiten**
 
-Es gibt je eine Elo für Blitz (3 Min. und 3+2), Schnellschach (10 Min. und 15+10) und Partien ohne Uhr. Dazu kommt eine Gesamt-Elo, die sich gewichtet nach der Zahl der Partien aus den einzelnen Werten ergibt. Die Gegner richten sich nach der Elo des jeweiligen Formats, Zugänge zu Clubs und Turnieren nach der Gesamt-Elo. Partien ohne Uhr zählen dort weniger. Die Bedenkzeit gehört zur Persönlichkeit des Gegners.
+Es gibt je eine Elo für Blitz (3 Min. und 3+2), Schnellschach (10 Min. und 15+10) und Partien ohne Uhr. Dazu kommt eine Gesamt-Elo, die sich gewichtet nach der Zahl der Partien aus den einzelnen Werten ergibt. Die Gegner richten sich nach der Elo des jeweiligen Formats. In der Gesamt-Elo zählen Partien ohne Uhr weniger. Die Bedenkzeit gehört zur Persönlichkeit des Gegners.
 
 | Format | Typischer Einsatz | Gegneruhr |
 | --- | --- | --- |
@@ -85,7 +85,7 @@ Pleite ist nicht das Ende, soll sich aber spürbar anfühlen. Als Sicherheitsnet
 
 | Kategorie | Beispiele | Nutzen |
 | --- | --- | --- |
-| Zugang | Startgelder, Reisen, Clubmitgliedschaften | Neue Gegner und Städte |
+| Zugang | Startgelder, Reisen | Neue Gegner und Städte |
 | Informationen | Gegner-Dossier, Tipp vom Barkeeper | Bessere Einschätzung |
 | Training | Trainerstunden, Eröffnungsbücher, Partieanalyse | Echtes Besserwerden |
 | Besitz | Wohnung, Stammcafé, später ein eigener Club | Sichtbarer Aufstieg, der Club bringt passives Einkommen |
@@ -121,7 +121,7 @@ Tipps lassen sich mit Spielgeld kaufen und machen auch Gegner über dem eigenen 
 - **Risiko:** Startgeld und Preisgeld steigen von Stadt zu Stadt.
 - **Stadtfinale:** Jede Stadt endet mit einem großen Turnier, dessen Sieg die nächste Stadt öffnet.
 - **Hilfe:** Während der Partie gibt es keine Tipps. Zwischen den Runden kann man Dossiers und Trainerstunden kaufen.
-- **Zugang:** Manche Turniere und Clubs verlangen eine Mindest-Elo, die sich nicht kaufen lässt.
+- **Zugang:** Alle Orte, Gegner und Turniere sind für alle offen. Es gibt keine Mindest-Elo. Wer gegen starke Gegner bestehen will, investiert Geld: in Einsätze, Startgelder, Dossiers und Tipps. *(Entscheidung vom 9. Nov. 2026, ersetzt die frühere Mindest-Elo.)*
 
 **Rivale**
 

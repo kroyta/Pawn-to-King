@@ -22,14 +22,6 @@ export interface CityActions {
   onPlayTournament: () => void;
 }
 
-/** Mindest-Elo eines Ortes: das niedrigste Mindest-Elo seiner Gegner */
-function placeMinElo(place: PlaceId): number | undefined {
-  const mins = OPPONENTS.filter((o) => o.place === place).map((o) => o.minElo ?? 0);
-  if (mins.length === 0) return undefined;
-  const m = Math.min(...mins);
-  return m > 0 ? m : undefined;
-}
-
 export function CityScreen({ save, notice, location, openPlace, onLocationChange, onOpenPlace, actions }: {
   save: SaveData;
   notice: string | null;
@@ -45,20 +37,12 @@ export function CityScreen({ save, notice, location, openPlace, onLocationChange
   const dailyOpen = save.dailySolved !== todayKey();
 
   const places: MapPlace[] = ALL_PLACES.map((id) => {
-    const minElo = placeMinElo(id);
-    let locked = false;
-    let lockLabel: string | undefined;
-    if (minElo !== undefined && overall.value < minElo) {
-      locked = true;
-      lockLabel = t.rating.locked(minElo);
-    } else if (id === 'station' && !save.cityFinalWon) {
-      locked = true;
-    }
+    // Alle Orte sind offen. Nur der Bahnhof wartet auf den Sieg im Stadtfinale.
+    const locked = id === 'station' && !save.cityFinalWon;
     return {
       id,
       label: t.mapLabels[id] ?? t.places[id],
       locked,
-      lockLabel,
       opponents: OPPONENTS.filter((o) => o.place === id).map((o) => ({ id: o.id, color: o.avatar.color })),
     };
   });
@@ -98,9 +82,7 @@ export function CityScreen({ save, notice, location, openPlace, onLocationChange
       {openPlace && (
         <PlaceSheet
           place={openPlace}
-          locked={places.find((p) => p.id === openPlace)!.locked}
           save={save}
-          overallElo={overall.value}
           onClose={() => onOpenPlace(null)}
           actions={actions}
         />
@@ -121,11 +103,9 @@ function DailyBanner({ onSolve }: { onSolve: () => void }) {
   );
 }
 
-function PlaceSheet({ place, locked, save, overallElo, onClose, actions }: {
+function PlaceSheet({ place, save, onClose, actions }: {
   place: PlaceId;
-  locked: boolean;
   save: SaveData;
-  overallElo: number;
   onClose: () => void;
   actions: CityActions;
 }) {
@@ -147,18 +127,15 @@ function PlaceSheet({ place, locked, save, overallElo, onClose, actions }: {
         <p className="sheet-desc">{description}</p>
 
         {place === 'home' && <HomeContent save={save} actions={actions} />}
-        {place === 'hall' && <TournamentCard save={save} overallElo={overallElo} actions={actions} />}
+        {place === 'hall' && <TournamentCard save={save} actions={actions} />}
         {place === 'station' && (
           <p className="sheet-locked">{save.cityFinalWon ? t.tournament.stationOpen : t.city.lockedText.station}</p>
         )}
 
         {opponents.map((o) => (
-          <OpponentCard key={o.id} opponent={o} save={save} overallElo={overallElo} actions={actions} />
+          <OpponentCard key={o.id} opponent={o} save={save} actions={actions} />
         ))}
 
-        {locked && opponents.length === 0 && place !== 'station' && (
-          <p className="sheet-locked">{t.city.lockedText[place]}</p>
-        )}
       </div>
     </div>
   );
@@ -228,10 +205,9 @@ function HomeContent({ save, actions }: { save: SaveData; actions: CityActions }
   );
 }
 
-function TournamentCard({ save, overallElo, actions }: { save: SaveData; overallElo: number; actions: CityActions }) {
+function TournamentCard({ save, actions }: { save: SaveData; actions: CityActions }) {
   const T = CITY_TOURNAMENT;
   const state = save.tournament;
-  const eloOk = overallElo >= T.minElo;
 
   return (
     <article className="opponent-card tournament">
@@ -244,7 +220,6 @@ function TournamentCard({ save, overallElo, actions }: { save: SaveData; overall
       <div className="tour-facts">
         <span>{t.tournament.entryFee} <b>{formatMoney(T.entryFee)}</b></span>
         <span>{t.tournament.prize} <b>{formatMoney(T.prize)}</b></span>
-        <span><b>{t.tournament.minElo(T.minElo)}</b></span>
       </div>
       <p className="reputation">{t.tournament.rules}</p>
       <div className="tour-field">
@@ -271,10 +246,10 @@ function TournamentCard({ save, overallElo, actions }: { save: SaveData; overall
       ) : (
         <button
           className="btn primary big"
-          disabled={!eloOk || !canAfford(save, T.entryFee)}
+          disabled={!canAfford(save, T.entryFee)}
           onClick={actions.onEnterTournament}
         >
-          {!eloOk ? t.rating.locked(T.minElo) : canAfford(save, T.entryFee) ? t.tournament.enter(formatMoney(T.entryFee)) : t.money.tooExpensive}
+          {canAfford(save, T.entryFee) ? t.tournament.enter(formatMoney(T.entryFee)) : t.money.tooExpensive}
         </button>
       )}
     </article>
@@ -314,20 +289,18 @@ function DossierRow({ opponent: o, save, actions, stake }: { opponent: Opponent;
   );
 }
 
-function OpponentCard({ opponent: o, save, overallElo, actions }: {
+function OpponentCard({ opponent: o, save, actions }: {
   opponent: Opponent;
   save: SaveData;
-  overallElo: number;
   actions: CityActions;
 }) {
   const text = t.opponents[o.id];
   const rec = recordOf(save, o.id);
   const range = knownRange(o, rec.games, save.dossiers.includes(o.id));
-  const locked = o.minElo !== undefined && overallElo < o.minElo;
   const affordable = canAfford(save, o.stake);
 
   return (
-    <article className={`opponent-card${locked ? ' locked' : ''}`}>
+    <article className="opponent-card">
       <div className="opponent-head">
         <Portrait color={o.avatar.color} sprites={OPPONENT_ART[o.id]} size={52} />
         <div className="opponent-meta">
@@ -341,14 +314,10 @@ function OpponentCard({ opponent: o, save, overallElo, actions }: {
         {range ? t.rating.strengthRange(range[0], range[1]) : t.rating.strengthUnknown}
         {rec.games > 0 && <span className="record"> · {t.rating.record(rec.wins, rec.draws, rec.losses)}</span>}
       </p>
-      {!locked && <DossierRow opponent={o} save={save} actions={actions} stake={o.stake} />}
-      {locked ? (
-        <button className="btn big" disabled>{t.rating.locked(o.minElo!)}</button>
-      ) : (
-        <button className="btn primary big" disabled={!affordable} onClick={() => actions.onPlay(o, false)}>
-          {affordable ? t.money.playFor(formatMoney(o.stake)) : t.money.tooExpensive}
-        </button>
-      )}
+      <DossierRow opponent={o} save={save} actions={actions} stake={o.stake} />
+      <button className="btn primary big" disabled={!affordable} onClick={() => actions.onPlay(o, false)}>
+        {affordable ? t.money.playFor(formatMoney(o.stake)) : t.money.tooExpensive}
+      </button>
     </article>
   );
 }

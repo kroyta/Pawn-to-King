@@ -13,8 +13,6 @@ export interface Opponent {
   stake: number;
   /** Die Bedenkzeit gehört zur Persönlichkeit */
   timeControl: TimeControl;
-  /** Mindest-Elo (Gesamtwertung) für diesen Gegner. Lässt sich nicht kaufen. */
-  minElo?: number;
   /** Spielstil: weicht vom Standardprofil der Stärke ab */
   style?: Partial<Omit<StrengthProfile, 'elo' | 'depth'>>;
   avatar: { initials: string; color: string };
@@ -45,7 +43,7 @@ export const OPPONENTS: Opponent[] = [
     avatar: { initials: 'GK', color: '#BE4128' },
   },
   {
-    id: 'albrecht', place: 'club', elo: 1500, stake: 2000, timeControl: tc('15+10'), minElo: 1000,
+    id: 'albrecht', place: 'club', elo: 1500, stake: 2000, timeControl: tc('15+10'),
     style: { greed: 0 },
     avatar: { initials: 'AR', color: '#16323F' },
   },
