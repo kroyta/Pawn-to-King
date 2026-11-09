@@ -75,8 +75,10 @@ export interface MapPlace {
   opponents: { id: string; color: string }[];
 }
 
-export function CityMap({ places, location, onArrive }: {
+export function CityMap({ places, location, onArrive, playerSprite }: {
   places: MapPlace[];
+  /** Eigene Figur; ohne Bild läuft ein roter Bauer */
+  playerSprite?: string;
   location: PlaceId;
   onArrive: (place: PlaceId) => void;
 }) {
@@ -190,6 +192,9 @@ export function CityMap({ places, location, onArrive }: {
       <g transform={`translate(${pos.x} ${pos.y}) scale(${UI})`} pointerEvents="none">
         <ellipse cx="0" cy="1" rx="9" ry="3" fill="#16323F" opacity="0.25" />
         <g className={walking ? 'walker walking' : 'walker'} transform={facingLeft ? 'scale(-1 1)' : undefined}>
+          {playerSprite ? (
+            <image href={playerSprite} x="-11" y="-48" width="22" height="48" preserveAspectRatio="xMidYMax meet" />
+          ) : (
           <path
             d="M-8 0 h16 l-2 -4 h-3 l-1.5 -9 a5.5 5.5 0 1 0 -3 0 l-1.5 9 h-3 z"
             fill="#BE4128"
@@ -197,6 +202,7 @@ export function CityMap({ places, location, onArrive }: {
             strokeWidth="1.8"
             strokeLinejoin="round"
           />
+          )}
         </g>
       </g>
     </svg>

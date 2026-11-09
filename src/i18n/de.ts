@@ -4,6 +4,15 @@ import type { ReactionLines } from '../components/GameScreen';
 export const de = {
   appTitle: 'Pawn to King',
   sound: { on: 'Ton an', off: 'Ton aus' },
+  create: {
+    title: 'Willkommen in der Stadt!',
+    intro: 'Du fängst ganz unten an: im Park, mit 100 € in der Tasche. Wer bist du?',
+    name: 'Dein Name',
+    placeholder: 'z. B. Alex',
+    look: 'Dein Aussehen',
+    start: 'Los geht’s',
+    edit: 'Figur ändern',
+  },
   debug: {
     title: 'Debug',
     open: 'Debug-Menü',

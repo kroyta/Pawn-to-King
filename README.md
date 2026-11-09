@@ -13,6 +13,8 @@ Schritt 5: klickbare Stadtkarte in Papierkarten-Optik (`src/components/CityMap.t
 Schritt 6: Tipps, Tagesaufgabe, Einkäufe und das Stadtturnier.
 Schritt 7 (begonnen): Klänge per Web Audio mit Stummschalter; Stadtkarte und Heinz im neuen Grafikstil, siehe [`docs/grafik.md`](docs/grafik.md).
 
+**Eigene Figur:** Beim ersten Start Name und Aussehen wählen, änderbar in der Wohnung.
+
 **Debug-Menü:** fünfmal schnell auf „Pawn to King“ oben tippen oder `?debug` an die Adresse hängen.
 Dann gibt es einen Käfer-Knopf mit Geld, Elo, Tagesaufgabe, Stadtfinale und Zurücksetzen.
 

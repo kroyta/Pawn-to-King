@@ -43,6 +43,8 @@ export interface SaveData {
   tournament: TournamentState | null;
   /** Stadtfinale gewonnen: Der Bahnhof ist offen */
   cityFinalWon: boolean;
+  /** Eigene Figur; null, solange sie noch nicht erstellt wurde */
+  player: { name: string; look: string } | null;
 }
 
 export const START_BALANCE = 100;
@@ -63,6 +65,7 @@ export function newSave(): SaveData {
     dossiers: [],
     tournament: null,
     cityFinalWon: false,
+    player: null,
   };
 }
 

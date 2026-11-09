@@ -30,6 +30,10 @@ import marleneMap from '../assets/opponents/marlene-map.webp';
 import marleneNeutral from '../assets/opponents/marlene-neutral.webp';
 import marleneThinking from '../assets/opponents/marlene-thinking.webp';
 import marleneWorried from '../assets/opponents/marlene-worried.webp';
+import playerCurly from '../assets/players/curly.webp';
+import playerGlasses from '../assets/players/glasses.webp';
+import playerHoodie from '../assets/players/hoodie.webp';
+import playerPonytail from '../assets/players/ponytail.webp';
 import type { Mood } from '../components/Avatar';
 import type { PlaceId } from './places';
 
@@ -56,3 +60,15 @@ export const OPPONENT_MAP_SPOTS: Record<string, { sprite: string; x: number; y: 
   kevin: { sprite: kevinMap, x: 880, y: 402, w: 46, h: 125 },
   albrecht: { sprite: albrechtMap, x: 700, y: 790, w: 46, h: 125 },
 };
+
+/** Wählbare Figuren für den Spieler */
+export const PLAYER_LOOKS: { id: string; sprite: string }[] = [
+  { id: 'ponytail', sprite: playerPonytail },
+  { id: 'glasses', sprite: playerGlasses },
+  { id: 'curly', sprite: playerCurly },
+  { id: 'hoodie', sprite: playerHoodie },
+];
+
+export function playerSprite(look: string | undefined): string | undefined {
+  return PLAYER_LOOKS.find((l) => l.id === look)?.sprite;
+}

@@ -369,3 +369,49 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .map-locked { filter: grayscale(1) brightness(1.08) opacity(0.82); pointer-events: none; }
 .map-wrap { background: #FFFDF8; }
 .sheet-art { display: block; width: 150px; height: 130px; object-fit: contain; align-self: center; margin: -4px 0 4px; filter: drop-shadow(0 6px 10px rgba(22, 50, 63, 0.15)); }
+
+/* Gegner als Figur auf der Brettkante */
+.stage {
+  width: var(--board-max); display: flex; align-items: flex-end; gap: 6px;
+  padding: 0 10px; margin-bottom: -8px; position: relative; z-index: 2; pointer-events: none;
+}
+.stage-figure { width: 88px; height: 116px; flex: none; display: flex; justify-content: center; align-items: flex-end; }
+.stage-figure img {
+  height: 100%; width: auto; max-width: 130px; object-fit: contain;
+  filter: drop-shadow(0 4px 4px rgba(22, 50, 63, 0.25));
+  animation: pop 0.25s ease-out;
+}
+@keyframes pop { from { transform: scale(0.94) translateY(3px); } to { transform: none; } }
+.stage-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; padding-bottom: 18px; }
+.stage-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.stage-top .player-line { min-width: 0; }
+.stage-speech { position: relative; margin: 0; font-size: 14px; padding: 6px 10px; background: #fff; border: 1.5px solid var(--line); }
+.stage-speech::before {
+  content: ''; position: absolute; left: -8px; bottom: 10px;
+  border: 7px solid transparent; border-left: 0; border-right-color: var(--line);
+}
+@media (prefers-reduced-motion: reduce) { .stage-figure img { animation: none; } }
+
+/* Brettgröße so wählen, dass Figur, Brett, Uhr und Tipps auf einen Bildschirm passen */
+.game.has-stage { --board-max: min(100vw, calc(100dvh - 250px)); }
+.game.has-stage.has-tips { --board-max: min(100vw, max(300px, calc(100dvh - 340px))); }
+.game.has-tips:not(.has-stage) { --board-max: min(100vw, max(300px, calc(100dvh - 290px))); }
+.game .stage { width: 100%; max-width: 560px; }
+
+/* Eigene Figur erstellen */
+.create { padding: 8px 16px 24px; display: flex; flex-direction: column; }
+.create h2 { margin: 6px 0 4px; font-size: 24px; font-weight: 800; }
+.create-label { margin: 18px 0 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.create-input {
+  font: inherit; font-size: 18px; font-weight: 600; color: var(--text);
+  padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 14px; background: #fff;
+}
+.create-input:focus { outline: none; border-color: var(--text); }
+.look-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.look {
+  aspect-ratio: 3 / 5; padding: 6px; border-radius: 16px; border: 2px solid var(--line); background: #fff;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.look img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.look.selected { border-color: var(--text); background: #F3F0E4; }
+.create .btn.big { margin-top: 24px; }

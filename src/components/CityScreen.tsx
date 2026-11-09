@@ -1,5 +1,5 @@
 import { canAfford, FREE_GAME_REWARD, recordOf, type SaveData } from '../game/career';
-import { BUILDING_ART, OPPONENT_ART } from '../game/art';
+import { BUILDING_ART, OPPONENT_ART, playerSprite } from '../game/art';
 import { formatMoney } from '../game/format';
 import { knownRange, opponentById, OPPONENTS, type Opponent } from '../game/opponents';
 import { ALL_PLACES, type PlaceId } from '../game/places';
@@ -14,6 +14,7 @@ import { CityMap, type MapPlace } from './CityMap';
 export interface CityActions {
   onPlay: (opponent: Opponent, free: boolean) => void;
   onTest: () => void;
+  onEditPlayer: () => void;
   onPuzzle: () => void;
   onBuyDossier: (opponent: Opponent, price: number) => void;
   onBuyItem: (id: string, price: number) => void;
@@ -71,6 +72,7 @@ export function CityScreen({ save, notice, location, openPlace, onLocationChange
       <div className="map-wrap">
         <CityMap
           places={places}
+          playerSprite={playerSprite(save.player?.look)}
           location={location}
           onArrive={(p) => {
             onLocationChange(p);
@@ -199,6 +201,7 @@ function HomeContent({ save, actions }: { save: SaveData; actions: CityActions }
         })}
       </ul>
 
+      <button className="btn ghost small test-link" onClick={actions.onEditPlayer}>{t.create.edit}</button>
       <button className="btn ghost small test-link" onClick={actions.onTest}>{t.home.testGame}</button>
       <p className="hint center">{t.money.virtual}<br />{t.rating.notice}</p>
     </>

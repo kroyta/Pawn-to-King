@@ -33,6 +33,9 @@ Ziel ist ein eigener, warmer Stil, der nicht nach Governor of Poker aussieht.
   Kartenfigur an ihrem Ort (`OPPONENT_ART` und `OPPONENT_MAP_SPOTS` in `src/game/art.ts`):
   Heinz sitzt am Steintisch im Park, Blitz-Jojo steht mit Schachuhr daneben, Marlene sitzt mit Tee vor dem Café,
   Gambit-Kevin lehnt an der Laterne, Albrecht steht auf der Treppe des Clubs.
+- In der Partie steht der Gegner als ganze Figur auf der Brettkante, mit Sprechblase daneben.
+- Eigene Figur: vier wählbare Spielerfiguren (`src/assets/players/`), beim ersten Start mit Name gewählt,
+  später in der Wohnung änderbar.
 - Neue Figurenblätter: `python3 -I scripts/process-sheet.py BLATT.png NAME` stellt die vier Ausdrücke frei.
 
 ## Canva: generieren ja, speichern nein

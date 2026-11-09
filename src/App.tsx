@@ -10,6 +10,7 @@ import {
   type SaveData, type Settlement,
 } from './game/career';
 import { OPPONENT_ART } from './game/art';
+import { CreatePlayer } from './components/CreatePlayer';
 import { formatMoney } from './game/format';
 import { dayElo, opponentById, type Opponent } from './game/opponents';
 import { START_PLACE, type PlaceId } from './game/places';
@@ -42,7 +43,7 @@ interface Match {
 /** Was nach einer Turnierpartie passiert, für das Ergebnisfenster */
 type TournamentNote = { kind: 'tiebreak' | 'final' | 'won' | 'lost'; text: string };
 
-type Screen = 'home' | 'test' | 'puzzle';
+type Screen = 'home' | 'test' | 'puzzle' | 'player';
 
 const randomColor = (): Color => (Math.random() < 0.5 ? 'w' : 'b');
 
@@ -133,6 +134,7 @@ export default function App() {
   const actions: CityActions = {
     onPlay: (opponent, free) => beginMatch(save, opponent, free ? 'free' : 'money', opponent.timeControl),
     onTest: () => { setOpenPlace(null); setScreen('test'); },
+    onEditPlayer: () => { setOpenPlace(null); setScreen('player'); },
     onPuzzle: () => { setOpenPlace(null); setScreen('puzzle'); },
     onBuyDossier: (opponent, price) => {
       const s = spend(save, price);
@@ -280,6 +282,7 @@ export default function App() {
           opponentName={o ? t.opponents[o.id].name : undefined}
           opponentTag={opponentTag}
           playerTag={o ? playerElo() : undefined}
+          playerName={save.player?.name}
           onFinish={onFinish}
           tips={tips}
           boardColors={boardColors}
@@ -288,6 +291,12 @@ export default function App() {
           newGameLabel={o ? t.money.back : t.actions.newGame}
           onRematch={onRematch}
           onNewGame={() => setMatch(null)}
+        />
+      ) : !save.player || screen === 'player' ? (
+        <CreatePlayer
+          initial={save.player}
+          onDone={(player) => { setSave({ ...save, player }); setScreen('home'); }}
+          onCancel={save.player ? () => setScreen('home') : undefined}
         />
       ) : screen === 'puzzle' ? (
         <PuzzleScreen

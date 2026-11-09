@@ -73,6 +73,7 @@ interface Props {
   opponentName?: string;
   opponentTag?: string;
   playerTag?: string;
+  playerName?: string;
   /** Aussehen und Sprüche des Gegners; ohne Persona gibt es keine Sprechblase */
   persona?: Persona;
   /** Wird genau einmal aufgerufen, wenn die Partie endet */
@@ -93,7 +94,7 @@ interface Props {
 const isLightSquare = (sq: string) => (sq.charCodeAt(0) - 97 + Number(sq[1]) - 1) % 2 === 1;
 
 export function GameScreen({
-  timeControl, playerColor, engine, opponentName = t.opponent, opponentTag, playerTag, persona, onFinish, tips, boardColors, resultExtra,
+  timeControl, playerColor, engine, opponentName = t.opponent, opponentTag, playerTag, playerName = t.you, persona, onFinish, tips, boardColors, resultExtra,
   rematchLabel = t.actions.rematch, newGameLabel = t.actions.newGame, onRematch, onNewGame,
 }: Props) {
   const gameRef = useRef(new Chess());
@@ -409,17 +410,33 @@ export function GameScreen({
   let status: string = isPlayerTurn ? t.status.yourTurn : t.status.thinking;
   if (!result && game.inCheck()) status = `${t.status.check} ${status}`;
 
+  // Wenn der Gegner am Zug ist und gerade nichts fühlt, denkt er nach
+  const displayMood: Mood = !result && turn === opponentColor && mood === 'neutral' ? 'thinking' : mood;
+
   return (
-    <div className="game">
-      <PlayerBar
-        name={opponentName}
-        tag={opponentTag ?? engine.name}
-        color={opponentColor}
-        active={!result && turn === opponentColor}
-        clock={hasClock ? clockMs(opponentColor) : null}
-        avatar={persona && <Portrait color={persona.color} sprites={persona.sprites} mood={!result && turn === opponentColor && mood === 'neutral' ? 'thinking' : mood} size={56} />}
-        bubble={bubble}
-      />
+    <div className={`game${tips && !result ? ' has-tips' : ''}${persona?.sprites ? ' has-stage' : ''}`}>
+      {persona?.sprites ? (
+        // Gegner als freigestellte Figur, die auf der Brettkante steht
+        <OpponentStage
+          name={opponentName}
+          tag={opponentTag ?? engine.name}
+          color={opponentColor}
+          active={!result && turn === opponentColor}
+          clock={hasClock ? clockMs(opponentColor) : null}
+          sprite={persona.sprites[displayMood]}
+          bubble={bubble}
+        />
+      ) : (
+        <PlayerBar
+          name={opponentName}
+          tag={opponentTag ?? engine.name}
+          color={opponentColor}
+          active={!result && turn === opponentColor}
+          clock={hasClock ? clockMs(opponentColor) : null}
+          avatar={persona && <Portrait color={persona.color} mood={displayMood} size={56} />}
+          bubble={bubble}
+        />
+      )}
 
       <div className="board-wrap">
         <Chessboard
@@ -513,7 +530,7 @@ export function GameScreen({
       </div>
 
       <PlayerBar
-        name={t.you}
+        name={playerName}
         tag={playerTag}
         color={playerColor}
         active={isPlayerTurn}
@@ -580,6 +597,43 @@ function TipIcon({ kind }: { kind: TipKind }) {
     case 'undo':
       return <svg {...common} stroke="#BE4128"><path d="M9 7 H4 V2" /><path d="M4.5 7 A8.5 8.5 0 1 1 3.5 13" /></svg>;
   }
+}
+
+function Clock({ clock, active }: { clock: number | null; active: boolean }) {
+  if (clock === null) return <span className="clock off">{t.noClock}</span>;
+  const low = clock < 20_000;
+  return <span className={`clock${active ? ' active' : ''}${low ? ' low' : ''}`}>{formatClock(clock)}</span>;
+}
+
+function OpponentStage({ name, tag, color, active, clock, sprite, bubble }: {
+  name: string;
+  tag?: string;
+  color: Color;
+  active: boolean;
+  clock: number | null;
+  sprite: string;
+  bubble?: { text: string; id: number } | null;
+}) {
+  return (
+    <div className="stage">
+      <div className="stage-figure">
+        <img key={sprite} src={sprite} alt="" draggable={false} />
+      </div>
+      <div className="stage-side">
+        <div className="stage-top">
+          <div className="player-line">
+            <span className={`dot ${color === 'w' ? 'dot-white' : 'dot-black'}`} />
+            <span className="player-name">{name}</span>
+            {tag && <span className="player-tag">{tag}</span>}
+          </div>
+          <Clock clock={clock} active={active} />
+        </div>
+        <p key={bubble?.id ?? 'none'} className={`speech stage-speech${bubble ? ' show' : ''}`}>
+          <span>{bubble?.text ?? '\u00a0'}</span>
+        </p>
+      </div>
+    </div>
+  );
 }
 
 function PlayerBar({ name, tag, color, active, clock, avatar, bubble }: {
